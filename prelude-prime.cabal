@@ -1,0 +1,24 @@
+name:                prelude-prime
+version:             0.1.0.0
+-- synopsis:
+-- description:
+homepage:            https://github.com/lloydac/prelude-prime#readme\
+author:              Lloyd Cunningham
+maintainer:          lloyd.cunningham@me.com
+copyright:           2017 Lloyd Cunningham
+category:            Prelude
+build-type:          Simple
+extra-source-files:  README.md
+cabal-version:       >=1.10
+
+library
+  hs-source-dirs:      .
+  exposed-modules:     PreludePrime
+  build-depends:       base >= 4.10 && < 5
+  ghc-options:         -Wall -Werror -fwarn-tabs
+  default-language:    Haskell2010
+  default-extensions:  NoImplicitPrelude
+
+source-repository head
+  type:     git
+  location: https://github.com/lloydac/prelude-prime
