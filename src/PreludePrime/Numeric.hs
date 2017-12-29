@@ -3,7 +3,6 @@ module PreludePrime.Numeric
 , Integer
 , Float
 , Double
-, Rational
 , Word
 , Num(..)
 , Real(..)

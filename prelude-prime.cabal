@@ -1,8 +1,7 @@
 name:                prelude-prime
 version:             0.1.0.0
--- synopsis:
--- description:
-homepage:            https://github.com/lloydac/prelude-prime#readme\
+synopsis:            My Prelude alternative
+homepage:            https://github.com/lloydac/prelude-prime#readme
 author:              Lloyd Cunningham
 maintainer:          lloyd.cunningham@me.com
 copyright:           2017 Lloyd Cunningham
@@ -12,9 +11,12 @@ extra-source-files:  README.md
 cabal-version:       >=1.10
 
 library
-  hs-source-dirs:      .
+  hs-source-dirs:      src
   exposed-modules:     PreludePrime
+                     , PreludePrime.Enum
+                     , PreludePrime.Numeric
   build-depends:       base >= 4.10 && < 5
+                     , deepseq
   ghc-options:         -Wall -Werror -fwarn-tabs
   default-language:    Haskell2010
   default-extensions:  NoImplicitPrelude
