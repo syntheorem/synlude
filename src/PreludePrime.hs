@@ -156,12 +156,11 @@ module PreludePrime
 -- * Exceptions
 , Prelude.error
 , Prelude.undefined
-, Control.Exception.Exception(toException, fromException, displayException)
-, Control.Exception.SomeException(SomeException)
+, Control.Exception.assert
 , Control.Exception.throw
 , Control.Exception.throwIO
-, Control.Exception.try
-, Control.Exception.catch
+, Control.Exception.Exception(toException, fromException, displayException)
+, Control.Exception.SomeException(SomeException)
 , GHC.Stack.HasCallStack
 
 -- * Showing and reading values
@@ -181,6 +180,16 @@ module PreludePrime
 , GHC.TypeLits.Nat
 , GHC.TypeLits.Symbol
 , GHC.Generics.Generic
+
+-- * Tracing
+-- | Provided in the prelude to avoid having to add and remove @import "Debug.Trace"@ statements when debugging.
+-- Also note that I modified some of the combinator functions to be more generally useful.
+, Debug.Trace.trace
+, traceShow
+, Debug.Trace.traceStack
+, traceShowStack
+, traceIO
+, traceStackIO
 ) where
 
 import qualified Control.Applicative
@@ -188,7 +197,6 @@ import qualified Control.DeepSeq
 import qualified Control.Exception
 import qualified Control.Monad
 import qualified Control.Monad.Fail
-import qualified Control.Monad.IO.Class
 import qualified Data.Bool
 import qualified Data.Char
 import qualified Data.Either
@@ -208,6 +216,7 @@ import qualified Data.Traversable
 import qualified Data.Proxy
 import qualified Data.Word
 import qualified Data.Void
+import qualified Debug.Trace
 import qualified GHC.Exts
 import qualified GHC.Generics
 import qualified GHC.Stack
@@ -218,13 +227,16 @@ import qualified Text.Read
 import qualified Text.Show
 
 import Control.DeepSeq (NFData, deepseq)
+import Control.Monad (when)
+import Control.Monad.IO.Class (MonadIO(liftIO))
 import Data.Bool (bool)
 import GHC.Exts (build)
 
 import Prelude ( Bool, Int, String, Maybe(Just, Nothing), maybe
                , Functor(fmap), (<$>), Applicative(pure, (<*>))
                , Monoid(mappend, mempty), Foldable(foldr, null)
-               , Traversable, Read, reads, (.), seq, id, (&&), (||)
+               , Traversable, Read, reads, Show(show), (.), seq
+               , id, not, (&&), (||), ($)
                )
 
 -- NOTE: The rules pragmas for the following functions are mainly to
@@ -234,7 +246,7 @@ import Prelude ( Bool, Int, String, Maybe(Just, Nothing), maybe
 -- | A lifted version of '&&'.
 --
 -- Useful when combined with the 'Applicative' instance for functions,
--- e.g. `(isSpace <&&> isControl) c`.
+-- e.g. @(isSpace <&&> isControl) c@.
 (<&&>) :: Applicative f => f Bool -> f Bool -> f Bool
 (<&&>) = Control.Applicative.liftA2 (&&)
 infixr 3 <&&>
@@ -243,7 +255,7 @@ infixr 3 <&&>
 -- | A lifted version of '||'.
 --
 -- Useful when combined with the 'Applicative' instance for functions,
--- e.g. `(isSpace <||> isControl) c`.
+-- e.g. @(isSpace <||> isControl) c@.
 (<||>) :: Applicative f => f Bool -> f Bool -> f Bool
 (<||>) = Control.Applicative.liftA2 (||)
 infixr 2 <||>
@@ -277,7 +289,7 @@ map :: Functor f => (a -> b) -> f a -> f b
 map = Prelude.fmap
 {-# INLINE map #-}
 
--- | `'replicateA' n act` performs the action `n` times, gathering the results.
+-- | @'replicateA' n act@ performs the action @n@ times, gathering the results.
 replicateA :: Applicative f => Int -> f a -> f [a]
 replicateA = Control.Monad.replicateM
 {-# INLINE replicateA #-}
@@ -351,3 +363,23 @@ tryRead :: Read a => String -> Maybe a
 tryRead s = case [ a | (a, rest) <- reads s, null rest ] of
     [a] -> Just a
     _   -> Nothing
+
+-- | Equivalent to @'trace' ('show' a) a@.
+traceShow :: Show a => a -> a
+traceShow a = Debug.Trace.trace (show a) a
+
+-- | Equivalent to @'traceStack' ('show' a) a@
+traceShowStack :: Show a => a -> a
+traceShowStack a = Debug.Trace.traceStack (show a) a
+
+-- | Like 'trace' but in the 'IO' monad, so it is sequenced with respect to other actions.
+traceIO :: MonadIO m => String -> m ()
+traceIO = liftIO . Debug.Trace.traceIO
+
+-- | Like 'traceStack' but in the 'IO' monad, so it is sequenced with respect to other actions.
+traceStackIO :: MonadIO m => String -> m ()
+traceStackIO s = do
+    traceIO s
+    stack <- liftIO GHC.Stack.currentCallStack
+    when (not (null stack)) $
+      traceIO (GHC.Stack.renderStack stack)
