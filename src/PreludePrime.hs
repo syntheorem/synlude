@@ -5,6 +5,8 @@ module PreludePrime
   Data.Function.id
 , Data.Function.const
 , Data.Function.flip
+, Data.Function.fix
+, Prelude.until
 , (Data.Function..)
 , (Data.Function.$)
 , (Data.Function.&)
@@ -173,6 +175,12 @@ module PreludePrime
 , System.IO.IO
 , Control.Monad.IO.Class.MonadIO(liftIO)
 
+-- * Type casts and coercions
+, Data.Coerce.Coercible
+, Data.Coerce.coerce
+, Data.Typeable.Typeable
+, Data.Typeable.cast
+
 -- * Additional utilities
 , Data.Void.Void
 , Data.Proxy.Proxy(Proxy)
@@ -199,6 +207,7 @@ import qualified Control.Monad
 import qualified Control.Monad.Fail
 import qualified Data.Bool
 import qualified Data.Char
+import qualified Data.Coerce
 import qualified Data.Either
 import qualified Data.Eq
 import qualified Data.Foldable
@@ -213,6 +222,7 @@ import qualified Data.Ord
 import qualified Data.Ratio
 import qualified Data.String
 import qualified Data.Traversable
+import qualified Data.Typeable
 import qualified Data.Proxy
 import qualified Data.Word
 import qualified Data.Void
