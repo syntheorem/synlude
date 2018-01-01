@@ -19,6 +19,3 @@ This is because the function names conflict with function names from other data 
 general, redefine them.
 
 * Rename certain `xxxM` functions to `xxxA` since they now only require `Applicative`.
-
-* Provide categorized modules of additional base prelude declarations that are not exported by `PreludePrime`
-under the `PreludePrime.*` modules.

@@ -80,6 +80,10 @@ module PreludePrime
 , (Prelude.^^)
 , Prelude.Floating((**))
 
+-- * Enumerations
+, Prelude.Enum(succ, pred, toEnum, fromEnum, enumFrom, enumFromThen, enumFromTo, enumFromThenTo)
+, Prelude.Bounded(minBound, maxBound)
+
 -- * Monoid
 , Data.Monoid.Monoid(mappend, mempty)
 , (++)
