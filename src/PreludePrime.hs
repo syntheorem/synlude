@@ -164,7 +164,7 @@ module PreludePrime
 , Prelude.undefined
 , Control.Exception.assert
 , Control.Exception.throw
-, Control.Exception.throwIO
+, throwIO
 , Control.Exception.Exception(toException, fromException, displayException)
 , Control.Exception.SomeException(SomeException)
 , GHC.Stack.HasCallStack
@@ -241,6 +241,7 @@ import qualified Text.Read
 import qualified Text.Show
 
 import Control.DeepSeq (NFData, deepseq)
+import Control.Exception (Exception)
 import Control.Monad (when)
 import Control.Monad.IO.Class (MonadIO(liftIO))
 import Data.Bool (bool)
@@ -371,6 +372,12 @@ infixl 4 <$!>
 (<$!!>) f = fmap (\a -> let b = f a in b `deepseq` b)
 infixl 4 <$!!>
 {-# INLINE (<$!!>) #-}
+
+-- | A variant of 'throw' which is sequenced with respect to other IO actions.
+--
+-- See 'Control.Exception.throwIO'.
+throwIO :: (MonadIO m, Exception e) => e -> m a
+throwIO = liftIO . Control.Exception.throwIO
 
 -- | Read a value, returning 'Nothing' on failure.
 tryRead :: Read a => String -> Maybe a
