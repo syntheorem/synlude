@@ -332,10 +332,10 @@ filter f = foldr (\a -> bool id (a:) (f a)) []
 {-# INLINE[0] filter #-}
 {-# RULES
 "filter/List" [~1]
-    filter = Prelude.filter
+  filter = Prelude.filter
 "filter/build" [1]
-    forall (f :: a -> Bool) (as :: t a).
-        filter f as = build (\k z -> foldr (\a -> bool id (k a) (f a)) z as)
+  forall (f :: a -> Bool) (as :: t a).
+    filter f as = build (\k z -> foldr (\a -> bool id (k a) (f a)) z as)
   #-}
 
 -- | Map over a list and filter out the 'Nothing' values.
@@ -344,10 +344,10 @@ filterMap f = foldr (\a -> maybe id (:) (f a)) []
 {-# INLINE[0] filterMap #-}
 {-# RULES
 "filterMap/List" [~1]
-    filterMap = Data.Maybe.mapMaybe
+  filterMap = Data.Maybe.mapMaybe
 "filterMap/build" [1]
-    forall (f :: a -> Maybe b) (as :: t a).
-        filterMap f as = build (\k z -> foldr (\a -> maybe id k (f a)) z as)
+  forall (f :: a -> Maybe b) (as :: t a).
+    filterMap f as = build (\k z -> foldr (\a -> maybe id k (f a)) z as)
   #-}
 
 -- | A version of 'filter' in an 'Applicative' context.
@@ -400,7 +400,7 @@ traceIO = liftIO . Debug.Trace.traceIO
 -- | Like 'traceStack' but in the 'IO' monad, so it is sequenced with respect to other actions.
 traceStackIO :: MonadIO m => String -> m ()
 traceStackIO s = do
-    traceIO s
-    stack <- liftIO GHC.Stack.currentCallStack
-    when (not (null stack)) $
-      traceIO (GHC.Stack.renderStack stack)
+  traceIO s
+  stack <- liftIO GHC.Stack.currentCallStack
+  when (not (null stack)) $
+    traceIO (GHC.Stack.renderStack stack)

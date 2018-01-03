@@ -13,6 +13,7 @@ cabal-version:       >=1.10
 library
   hs-source-dirs:      src
   exposed-modules:     PreludePrime
+                     , PreludePrime.Exception
                      , PreludePrime.Numeric
   build-depends:       base >= 4.10 && < 5
                      , deepseq
