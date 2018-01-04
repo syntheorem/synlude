@@ -12,6 +12,7 @@ module PreludePrime.Exception
 , Control.Exception.try
 , Control.Exception.tryJust
 , mapException
+, mapExceptionIO
 , Control.Exception.mask
 , Control.Exception.mask_
 , Control.Exception.uninterruptibleMask
@@ -26,9 +27,7 @@ module PreludePrime.Exception
 , Control.Exception.onException
 ) where
 
-import Control.Exception (Exception)
-import Data.Function (flip)
-
+import PreludePrime
 import qualified Control.Exception
 
 -- | Map one exception onto another.
@@ -38,3 +37,8 @@ import qualified Control.Exception
 mapException :: (Exception e1, Exception e2) => a -> (e1 -> e2) -> a
 mapException = flip Control.Exception.mapException
 {-# INLINE mapException #-}
+
+-- | Map exceptions occurring in 'IO'.
+mapExceptionIO :: (Exception e1, Exception e2) => IO a -> (e1 -> e2) -> IO a
+mapExceptionIO io f = io `Control.Exception.catch` (\e -> throwIO (f e))
+{-# INLINE mapExceptionIO #-}
