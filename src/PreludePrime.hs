@@ -72,13 +72,13 @@ module PreludePrime
 , Prelude.Num((+), (-), (*), negate, fromInteger)
 , Prelude.subtract
 , Prelude.Real(toRational)
-, Prelude.Integral(div, mod, toInteger)
+, Prelude.Integral(quot, rem, div, mod, quotRem, divMod, toInteger)
 , Prelude.fromIntegral
 , (Prelude.^)
 , Prelude.Fractional((/), fromRational)
 , Prelude.realToFrac
 , (Prelude.^^)
-, Prelude.Floating((**))
+, Prelude.RealFrac(properFraction, truncate, round, ceiling, floor)
 
 -- * Enumerations
 , Prelude.Enum(succ, pred, toEnum, fromEnum, enumFrom, enumFromThen, enumFromTo, enumFromThenTo)
