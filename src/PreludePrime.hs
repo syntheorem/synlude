@@ -114,7 +114,7 @@ module PreludePrime
 , replicateA_
 
 -- * Monad
-, Control.Monad.Monad((>>=), (>>))
+, Control.Monad.Monad((>>=), (>>), return)
 , Control.Monad.Fail.MonadFail(fail)
 , (Control.Monad.=<<)
 , (Control.Monad.>=>)
