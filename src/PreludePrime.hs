@@ -163,6 +163,8 @@ module PreludePrime
 , Prelude.error
 , Prelude.undefined
 , Control.Exception.assert
+, assert'
+, assertIO'
 , Control.Exception.throw
 , throwIO
 , Control.Exception.Exception(toException, fromException, displayException)
@@ -241,14 +243,17 @@ import qualified Text.Read
 import qualified Text.Show
 
 import Control.DeepSeq (NFData, deepseq)
-import Control.Exception (Exception)
+import Control.Exception (Exception, AssertionFailed(..), evaluate, throw)
 import Control.Monad (when)
 import Control.Monad.IO.Class (MonadIO(liftIO))
 import Data.Bool (bool)
 import GHC.Exts (build)
+import GHC.Stack ( HasCallStack, withFrozenCallStack, getCallStack, callStack
+                 , srcLocFile, srcLocStartLine, srcLocStartCol
+                 )
 
-import Prelude ( Bool, Int, String, Maybe(Just, Nothing), maybe
-               , Functor(fmap), (<$>), Applicative(pure, (<*>))
+import Prelude ( Bool(True, False), Int, String, Maybe(Just, Nothing)
+               , maybe, Functor(fmap), (<$>), Applicative(pure, (<*>))
                , Monoid(mappend, mempty), Foldable(foldr, null)
                , Traversable, Read, reads, Show(show), (.), seq
                , id, not, (&&), (||), ($)
@@ -321,7 +326,7 @@ sequence_ = Data.Foldable.sequenceA_
 {-# INLINE sequence_ #-}
 
 -- | Evaluate each action in the structure from left to right, and collect the results.
--- For a version that doesn't ignore the results see 'sequence_'.
+-- For a version that ignores the results see 'sequence_'.
 sequence :: (Traversable t, Applicative f) => t (f a) -> f (t a)
 sequence = Data.Traversable.sequenceA
 {-# INLINE sequence #-}
@@ -372,6 +377,23 @@ infixl 4 <$!>
 (<$!!>) f = fmap (\a -> let b = f a in b `deepseq` b)
 infixl 4 <$!!>
 {-# INLINE (<$!!>) #-}
+
+-- | A variant of 'assert' which isn't disabled by @-fignore-asserts@.
+assert' :: HasCallStack => Bool -> a -> a
+assert' True a = a
+assert' False _ =
+  let msg = case getCallStack callStack of
+        [] -> "Assertion failed"
+        (_, loc):_ ->
+          let file = srcLocFile loc
+              line = show $ srcLocStartLine loc
+              col  = show $ srcLocStartCol loc
+          in file ++ ":" ++ line ++ ":" ++ col ++ ": Assertion failed"
+  in throw (AssertionFailed msg)
+
+-- | A variant of 'assert'' which is sequenced with respect to other IO actions.
+assertIO' :: (HasCallStack, MonadIO m) => Bool -> m ()
+assertIO' b = liftIO $ evaluate $ withFrozenCallStack $ assert' b ()
 
 -- | A variant of 'throw' which is sequenced with respect to other IO actions.
 --
