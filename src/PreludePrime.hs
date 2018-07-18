@@ -1,3 +1,5 @@
+{-# LANGUAGE CPP #-}
+
 -- | An alternative prelude for modern Haskell.
 module PreludePrime
 (
@@ -149,7 +151,7 @@ module PreludePrime
 , filterMapA
 
 -- * Forcing evaluation
-, Control.Exception.evaluate
+, evaluate
 , Prelude.seq
 , (Prelude.$!)
 , (<$!>)
@@ -162,14 +164,21 @@ module PreludePrime
 -- * Exceptions
 , Prelude.error
 , Prelude.undefined
-, Control.Exception.assert
-, assert'
-, assertIO'
 , Control.Exception.throw
 , throwIO
 , Control.Exception.Exception(toException, fromException, displayException)
 , Control.Exception.SomeException(SomeException)
 , GHC.Stack.HasCallStack
+
+-- ** Assertions
+, ensure
+, ensureMsg
+, ensureIO
+, ensureMsgIO
+, assert
+, assertMsg
+, assertIO
+, assertMsgIO
 
 -- * Showing and reading values
 , Text.Show.Show(show)
@@ -243,7 +252,7 @@ import qualified Text.Read
 import qualified Text.Show
 
 import Control.DeepSeq (NFData, deepseq)
-import Control.Exception (Exception, AssertionFailed(..), evaluate, throw)
+import Control.Exception (Exception, AssertionFailed(..),throw)
 import Control.Monad (when)
 import Control.Monad.IO.Class (MonadIO(liftIO))
 import Data.Bool (bool)
@@ -366,6 +375,13 @@ filterMapA :: (Applicative f, Foldable t) => (a -> f (Maybe b)) -> t a -> f [b]
 filterMapA f = foldr (\a bs -> maybe id (:) <$> f a <*> bs) (pure [])
 {-# INLINE filterMapA #-}
 
+-- | Evaluate an expression to weak head normal form.
+--
+-- See 'Control.Exception.evaluate'.
+evaluate :: MonadIO m => a -> m a
+evaluate = liftIO . Control.Exception.evaluate
+{-# INLINE evaluate #-}
+
 -- | Strict version of '<$>'.
 (<$!>) :: Functor f => (a -> b) -> f a -> f b
 (<$!>) f = fmap (\a -> let b = f a in b `seq` b)
@@ -378,22 +394,79 @@ infixl 4 <$!>
 infixl 4 <$!!>
 {-# INLINE (<$!!>) #-}
 
--- | A variant of 'assert' which isn't disabled by @-fignore-asserts@.
-assert' :: HasCallStack => Bool -> a -> a
-assert' True a = a
-assert' False _ =
+-- | Throw an 'AssertionFailed' exception if the provided condition is 'False'.
+--
+-- This is essentially an assert that can't be disabled. Note that best practice
+-- is to throw a custom exception instead, allowing users to potentially catch it
+-- and deal with the specific error. However, using this function is usually more
+-- convenient while developing.
+--
+-- The error message contains the file, line, and column of the call to @ensure@.
+ensure :: HasCallStack => Bool -> a -> a
+ensure b a = withFrozenCallStack $ ensureMsg b "Assertion failed" a
+
+-- | Like 'ensure', but with the ability to provide a custom error message.
+--
+-- Note that the file, line, and column of the call are still included in the message.
+ensureMsg :: HasCallStack => Bool -> String -> a -> a
+ensureMsg True  _ a = a
+ensureMsg False m _ =
   let msg = case getCallStack callStack of
-        [] -> "Assertion failed"
+        []         -> m
         (_, loc):_ ->
           let file = srcLocFile loc
-              line = show $ srcLocStartLine loc
-              col  = show $ srcLocStartCol loc
-          in file ++ ":" ++ line ++ ":" ++ col ++ ": Assertion failed"
+              line = show (srcLocStartLine loc)
+              col  = show (srcLocStartCol loc)
+          in file ++ ":" ++ line ++ ":" ++ col ++ ": " ++ m
   in throw (AssertionFailed msg)
 
--- | A variant of 'assert'' which is sequenced with respect to other IO actions.
-assertIO' :: (HasCallStack, MonadIO m) => Bool -> m ()
-assertIO' b = liftIO $ evaluate $ withFrozenCallStack $ assert' b ()
+-- | Like 'ensure', but is sequenced with respect to other IO actions.
+ensureIO :: (HasCallStack, MonadIO m) => Bool -> m ()
+ensureIO b = evaluate $ withFrozenCallStack $ ensure b ()
+
+-- | Like 'ensureMsg', but is sequenced with respect to other IO actions.
+ensureMsgIO :: (HasCallStack, MonadIO m) => Bool -> String -> m ()
+ensureMsgIO b msg = evaluate $ withFrozenCallStack $ ensureMsg b msg ()
+
+-- | Like 'ensure', but can be disabled via this package's @assert@ flag.
+#if ASSERT
+assert :: HasCallStack => Bool -> a -> a
+assert b a = withFrozenCallStack $ ensure b a
+#else
+assert :: Bool -> a -> a
+assert _ a = a
+#endif
+{-# INLINE assert #-}
+
+-- | Like 'ensureMsg', but can be disabled via this package's @assert@ flag.
+#if ASSERT
+assertMsg :: HasCallStack => Bool -> String -> a -> a
+assertMsg b msg a = withFrozenCallStack $ ensureMsg b msg a
+#else
+assertMsg :: Bool -> String -> a -> a
+assertMsg _ _ a = a
+#endif
+{-# INLINE assertMsg #-}
+
+-- | Like 'ensureIO', but can be disabled via this package's @assert@ flag.
+#if ASSERT
+assertIO :: (HasCallStack, MonadIO m) => Bool -> m ()
+assertIO b = withFrozenCallStack $ ensureIO b
+#else
+assertIO :: MonadIO m => Bool -> m ()
+assertIO _ = pure ()
+#endif
+{-# INLINE assertIO #-}
+
+-- | Like 'ensureMsgIO', but can be disabled via this package's @assert@ flag.
+#if ASSERT
+assertMsgIO :: (HasCallStack, MonadIO m) => Bool -> String -> m ()
+assertMsgIO b msg = withFrozenCallStack $ ensureMsgIO b msg
+#else
+assertMsgIO :: MonadIO m => Bool -> String -> m ()
+assertMsgIO _ _ = pure ()
+#endif
+{-# INLINE assertMsgIO #-}
 
 -- | A variant of 'throw' which is sequenced with respect to other IO actions.
 --

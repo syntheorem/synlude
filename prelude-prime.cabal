@@ -10,6 +10,13 @@ build-type:          Simple
 extra-source-files:  README.md
 cabal-version:       >=1.10
 
+flag assert
+  description:
+    If enabled, the assert functions will throw exceptions when passed False.
+    If disabled, the assert functions will not evaluate their arguments.
+  default: True
+  manual: True
+
 library
   hs-source-dirs:      src
   exposed-modules:     PreludePrime
@@ -20,6 +27,9 @@ library
   ghc-options:         -Wall -Werror -fwarn-tabs
   default-language:    Haskell2010
   default-extensions:  NoImplicitPrelude
+
+  if flag(assert)
+    cpp-options: -DASSERT=1
 
 source-repository head
   type:     git

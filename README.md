@@ -19,3 +19,20 @@ This is because the function names conflict with function names from other data 
 general, redefine them.
 
 * Rename certain `xxxM` functions to `xxxA` since they now only require `Applicative`.
+
+## Assertions
+
+`PreludePrime` also exports several assert functions. Unlike `assert` from `base`, these are not controlled
+by `-fignore-asserts`, but rather are enabled or disabled by the `assert` flag that this package provides.
+There are two reasons for this:
+
+* The `assert` provided by `base` isn't flexible; you can't pass a custom message, and you can't define
+assert functions on top of it (such as `assertIO`) because the location in the printed message will be
+based on the call to `assert` rather than the call to the function mapping it. Using GHC's `HasCallStack`,
+we can do better.
+
+* GHC automatically disables asserts when optimizations are enabled at all, which in my opinion is the
+wrong behavior. Generally I want my test builds to be optimized but also have assertions enabled. You
+can set `-fno-ignore-asserts` to get around this, but that will only work for the current project, not
+its dependencies. On the other hand, everything using assertions from `prelude-prime` will have them
+enabled or disabled based on the flag, which you can set in your `stack.yaml` or via the command line.
