@@ -86,7 +86,8 @@ module PreludePrime
 , Prelude.Enum(succ, pred, toEnum, fromEnum, enumFrom, enumFromThen, enumFromTo, enumFromThenTo)
 , Prelude.Bounded(minBound, maxBound)
 
--- * Monoid
+-- * Semigroup and Monoid
+, Data.Semigroup.Semigroup((<>))
 , Data.Monoid.Monoid(mappend, mempty)
 , (++)
 , concat
@@ -235,6 +236,7 @@ import qualified Data.Maybe
 import qualified Data.Monoid
 import qualified Data.Ord
 import qualified Data.Ratio
+import qualified Data.Semigroup
 import qualified Data.String
 import qualified Data.Traversable
 import qualified Data.Typeable
