@@ -26,7 +26,7 @@ module PreludePrime
 -- * Comparison
 , Data.Eq.Eq((==), (/=))
 , Data.Ord.Ordering(LT, EQ, GT)
-, Data.Ord.Ord(compare, (<), (<=), (>), (>=))
+, Data.Ord.Ord(compare, (<), (<=), (>), (>=), min, max)
 , Data.Ord.comparing
 
 -- * Maybe
