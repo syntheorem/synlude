@@ -163,8 +163,9 @@ module PreludePrime
 , (<$!!>)
 
 -- * Exceptions
-, Prelude.error
 , Prelude.undefined
+, Prelude.error
+, errorIO
 , Control.Exception.throw
 , throwIO
 , Control.Exception.Exception(toException, fromException, displayException)
@@ -395,6 +396,10 @@ infixl 4 <$!>
 (<$!!>) f = fmap (\a -> let b = f a in b `deepseq` b)
 infixl 4 <$!!>
 {-# INLINE (<$!!>) #-}
+
+-- | Like 'Prelude.error', but is sequenced with respect to other IO actions.
+errorIO :: (HasCallStack, MonadIO m) => String -> m a
+errorIO = withFrozenCallStack . evaluate . Prelude.error
 
 -- | Throw an 'AssertionFailed' exception if the provided condition is 'False'.
 --
