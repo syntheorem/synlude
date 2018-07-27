@@ -274,7 +274,7 @@ import Prelude ( Bool(True, False), Int, String, Maybe(Just, Nothing)
 -- | A lifted version of '&&'.
 --
 -- Useful when combined with the 'Applicative' instance for functions,
--- e.g. @(isSpace <&&> isControl) c@.
+-- e.g. @(isSpace \<&&\> isControl) c@.
 (<&&>) :: Applicative f => f Bool -> f Bool -> f Bool
 (<&&>) = Control.Applicative.liftA2 (&&)
 infixr 3 <&&>
@@ -283,7 +283,7 @@ infixr 3 <&&>
 -- | A lifted version of '||'.
 --
 -- Useful when combined with the 'Applicative' instance for functions,
--- e.g. @(isSpace <||> isControl) c@.
+-- e.g. @(isSpace \<||\> isControl) c@.
 (<||>) :: Applicative f => f Bool -> f Bool -> f Bool
 (<||>) = Control.Applicative.liftA2 (||)
 infixr 2 <||>

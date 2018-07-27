@@ -29,8 +29,8 @@ module PreludePrime.Exception
 -- ** Assertions
 --
 -- | Unlike the @assert@ from "Control.Exception", these assertions are not controlled
--- by @-fignore-asserts@, but rather are enabled or disabled by the @assert@ flag that
--- this package provides. There are two reasons for this:
+-- by @-fignore-asserts@, but rather are enabled or disabled by the @ignore-asserts@ flag
+-- that this package provides. There are two reasons for this:
 --
 -- * The @assert@ provided by "Control.Exception" isn't flexible; you can't pass a custom
 -- message, and you can't define assert functions on top of it (such as 'assertM') because
@@ -178,7 +178,7 @@ ensureMsgM :: (HasCallStack, MonadThrow m) => Bool -> String -> m ()
 ensureMsgM True  _ = pure ()
 ensureMsgM False s = withFrozenCallStack $ errorM s
 
--- | Like 'ensure', but can be disabled via this package's @assert@ flag.
+-- | Like 'ensure', but can be disabled via this package's @ignore-asserts@ flag.
 #if ASSERT
 assert :: HasCallStack => Bool -> a -> a
 assert b a = withFrozenCallStack $ ensure b a
@@ -188,7 +188,7 @@ assert _ a = a
 #endif
 {-# INLINE assert #-}
 
--- | Like 'ensureMsg', but can be disabled via this package's @assert@ flag.
+-- | Like 'ensureMsg', but can be disabled via this package's @ignore-asserts@ flag.
 #if ASSERT
 assertMsg :: HasCallStack => Bool -> String -> a -> a
 assertMsg b msg a = withFrozenCallStack $ ensureMsg b msg a
@@ -198,7 +198,7 @@ assertMsg _ _ a = a
 #endif
 {-# INLINE assertMsg #-}
 
--- | Like 'ensureM', but can be disabled via this package's @assert@ flag.
+-- | Like 'ensureM', but can be disabled via this package's @ignore-asserts@ flag.
 #if ASSERT
 assertM :: (HasCallStack, MonadThrow m) => Bool -> m ()
 assertM b = withFrozenCallStack $ ensureM b
@@ -208,7 +208,7 @@ assertM _ = pure ()
 #endif
 {-# INLINE assertM #-}
 
--- | Like 'ensureMsgM', but can be disabled via this package's @assert@ flag.
+-- | Like 'ensureMsgM', but can be disabled via this package's @ignore-asserts@ flag.
 #if ASSERT
 assertMsgM :: (HasCallStack, MonadThrow m) => Bool -> String -> m ()
 assertMsgM b msg = withFrozenCallStack $ ensureMsgM b msg
@@ -243,7 +243,7 @@ tryAll :: MonadCatch m => m a -> m (Either SomeException a)
 tryAll = try
 
 -- | Like 'mapException', but maps exceptions thrown by a monadic action.
-mapExceptionM :: (Exception e, Exception e', MonadCatch m) => (e -> e') -> m a -> m a
+mapExceptionM :: (Exception e1, Exception e2, MonadCatch m) => (e1 -> e2) -> m a -> m a
 mapExceptionM f action = action `catch` (\e -> throwM (f e))
 
 -- | Lifted version of "Control.Exception"'s 'Control.Exception.getMaskingState'.
