@@ -1,39 +1,41 @@
-name:                prelude-prime
-version:             0.1.0.0
-synopsis:            My Prelude alternative
-homepage:            https://github.com/lloydac/prelude-prime#readme
-author:              Lloyd Cunningham
-maintainer:          lloyd.cunningham@me.com
-copyright:           2017 Lloyd Cunningham
-category:            Prelude
-build-type:          Simple
-extra-source-files:  README.md
-cabal-version:       >=1.10
+cabal-version: >= 1.10
 
-flag assert
-  description:
-    If enabled, the assert functions will throw exceptions when passed False.
-    If disabled, the assert functions will not evaluate their arguments.
-  default: True
+-- This file has been generated from package.yaml by hpack version 0.29.4.
+--
+-- see: https://github.com/sol/hpack
+--
+-- hash: f3a18c1e790c7e4485b5eceae3e61b8c2e0e25cb657af2fec05c85d63a800169
+
+name:           prelude-prime
+version:        0.1.0.0
+synopsis:       My custom prelude, plus additional utilities
+author:         Lloyd Cunningham
+maintainer:     lloyd.cunningham@me.com
+copyright:      2018 Lloyd Cunningham
+category:       Prelude
+build-type:     Simple
+
+flag ignore-asserts
+  description: Causes the assert functions to become identity functions.
   manual: True
+  default: False
 
 library
-  hs-source-dirs:      src
-  exposed-modules:     PreludePrime
-                     , PreludePrime.Exception
-                     , PreludePrime.Numeric
-  build-depends:       base >= 4.10 && < 5
-                     , exceptions
-                     , deepseq
-                     , unliftio-core
-  ghc-options:         -Wall -Werror -fwarn-tabs
-  default-language:    Haskell2010
-  default-extensions:  NoImplicitPrelude
-                     , TypeApplications
-
-  if flag(assert)
+  hs-source-dirs:
+      src
+  exposed-modules:
+      PreludePrime
+      PreludePrime.Exception
+      PreludePrime.Numeric
+  build-depends:
+      base >=4.10 && <5
+    , deepseq
+    , exceptions
+    , unliftio-core
+  if flag(ignore-asserts)
+    cpp-options: -DASSERT=0
+  else
     cpp-options: -DASSERT=1
-
-source-repository head
-  type:     git
-  location: https://github.com/lloydac/prelude-prime
+  ghc-options: -Wall -Werror -fwarn-tabs
+  default-language: Haskell2010
+  default-extensions: NoImplicitPrelude
