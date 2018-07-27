@@ -1,5 +1,3 @@
-{-# LANGUAGE CPP #-}
-
 -- | An alternative prelude for modern Haskell.
 module PreludePrime
 (
@@ -163,24 +161,25 @@ module PreludePrime
 , (<$!!>)
 
 -- * Exceptions
-, Prelude.undefined
-, Prelude.error
-, errorIO
-, Control.Exception.throw
-, throwIO
-, Control.Exception.Exception(toException, fromException, displayException)
-, Control.Exception.SomeException(SomeException)
+, PreludePrime.Exception.undefined
+, PreludePrime.Exception.error
+, PreludePrime.Exception.errorM
+, PreludePrime.Exception.throw
+, PreludePrime.Exception.throwM
+, PreludePrime.Exception.Exception(toException, fromException, displayException)
+, PreludePrime.Exception.SomeException(SomeException)
 , GHC.Stack.HasCallStack
 
 -- ** Assertions
-, ensure
-, ensureMsg
-, ensureIO
-, ensureMsgIO
-, assert
-, assertMsg
-, assertIO
-, assertMsgIO
+-- | See "PreludePrime.Exception" for additional documentation.
+, PreludePrime.Exception.assert
+, PreludePrime.Exception.assertMsg
+, PreludePrime.Exception.assertM
+, PreludePrime.Exception.assertMsgM
+, PreludePrime.Exception.ensure
+, PreludePrime.Exception.ensureMsg
+, PreludePrime.Exception.ensureM
+, PreludePrime.Exception.ensureMsgM
 
 -- * Showing and reading values
 , Text.Show.Show(show)
@@ -250,19 +249,16 @@ import qualified GHC.Generics
 import qualified GHC.Stack
 import qualified GHC.TypeLits
 import qualified Prelude
+import qualified PreludePrime.Exception
 import qualified System.IO
 import qualified Text.Read
 import qualified Text.Show
 
 import Control.DeepSeq (NFData, deepseq)
-import Control.Exception (Exception, AssertionFailed(..),throw)
 import Control.Monad (when)
 import Control.Monad.IO.Class (MonadIO(liftIO))
 import Data.Bool (bool)
 import GHC.Exts (build)
-import GHC.Stack ( HasCallStack, withFrozenCallStack, getCallStack, callStack
-                 , srcLocFile, srcLocStartLine, srcLocStartCol
-                 )
 
 import Prelude ( Bool(True, False), Int, String, Maybe(Just, Nothing)
                , maybe, Functor(fmap), (<$>), Applicative(pure, (<*>))
@@ -396,90 +392,6 @@ infixl 4 <$!>
 (<$!!>) f = fmap (\a -> let b = f a in b `deepseq` b)
 infixl 4 <$!!>
 {-# INLINE (<$!!>) #-}
-
--- | Like 'Prelude.error', but is sequenced with respect to other IO actions.
-errorIO :: (HasCallStack, MonadIO m) => String -> m a
-errorIO = withFrozenCallStack . evaluate . Prelude.error
-
--- | Throw an 'AssertionFailed' exception if the provided condition is 'False'.
---
--- This is essentially an assert that can't be disabled. Note that best practice
--- is to throw a custom exception instead, allowing users to potentially catch it
--- and deal with the specific error. However, using this function is usually more
--- convenient while developing.
---
--- The error message contains the file, line, and column of the call to @ensure@.
-ensure :: HasCallStack => Bool -> a -> a
-ensure b a = withFrozenCallStack $ ensureMsg b "Assertion failed" a
-
--- | Like 'ensure', but with the ability to provide a custom error message.
---
--- Note that the file, line, and column of the call are still included in the message.
-ensureMsg :: HasCallStack => Bool -> String -> a -> a
-ensureMsg True  _ a = a
-ensureMsg False m _ =
-  let msg = case getCallStack callStack of
-        []         -> m
-        (_, loc):_ ->
-          let file = srcLocFile loc
-              line = show (srcLocStartLine loc)
-              col  = show (srcLocStartCol loc)
-          in file ++ ":" ++ line ++ ":" ++ col ++ ": " ++ m
-  in throw (AssertionFailed msg)
-
--- | Like 'ensure', but is sequenced with respect to other IO actions.
-ensureIO :: (HasCallStack, MonadIO m) => Bool -> m ()
-ensureIO b = evaluate $ withFrozenCallStack $ ensure b ()
-
--- | Like 'ensureMsg', but is sequenced with respect to other IO actions.
-ensureMsgIO :: (HasCallStack, MonadIO m) => Bool -> String -> m ()
-ensureMsgIO b msg = evaluate $ withFrozenCallStack $ ensureMsg b msg ()
-
--- | Like 'ensure', but can be disabled via this package's @assert@ flag.
-#if ASSERT
-assert :: HasCallStack => Bool -> a -> a
-assert b a = withFrozenCallStack $ ensure b a
-#else
-assert :: Bool -> a -> a
-assert _ a = a
-#endif
-{-# INLINE assert #-}
-
--- | Like 'ensureMsg', but can be disabled via this package's @assert@ flag.
-#if ASSERT
-assertMsg :: HasCallStack => Bool -> String -> a -> a
-assertMsg b msg a = withFrozenCallStack $ ensureMsg b msg a
-#else
-assertMsg :: Bool -> String -> a -> a
-assertMsg _ _ a = a
-#endif
-{-# INLINE assertMsg #-}
-
--- | Like 'ensureIO', but can be disabled via this package's @assert@ flag.
-#if ASSERT
-assertIO :: (HasCallStack, MonadIO m) => Bool -> m ()
-assertIO b = withFrozenCallStack $ ensureIO b
-#else
-assertIO :: MonadIO m => Bool -> m ()
-assertIO _ = pure ()
-#endif
-{-# INLINE assertIO #-}
-
--- | Like 'ensureMsgIO', but can be disabled via this package's @assert@ flag.
-#if ASSERT
-assertMsgIO :: (HasCallStack, MonadIO m) => Bool -> String -> m ()
-assertMsgIO b msg = withFrozenCallStack $ ensureMsgIO b msg
-#else
-assertMsgIO :: MonadIO m => Bool -> String -> m ()
-assertMsgIO _ _ = pure ()
-#endif
-{-# INLINE assertMsgIO #-}
-
--- | A variant of 'throw' which is sequenced with respect to other IO actions.
---
--- See 'Control.Exception.throwIO'.
-throwIO :: (MonadIO m, Exception e) => e -> m a
-throwIO = liftIO . Control.Exception.throwIO
 
 -- | Read a value, returning 'Nothing' on failure.
 tryRead :: Read a => String -> Maybe a

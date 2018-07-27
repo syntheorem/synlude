@@ -23,10 +23,13 @@ library
                      , PreludePrime.Exception
                      , PreludePrime.Numeric
   build-depends:       base >= 4.10 && < 5
+                     , exceptions
                      , deepseq
+                     , unliftio-core
   ghc-options:         -Wall -Werror -fwarn-tabs
   default-language:    Haskell2010
   default-extensions:  NoImplicitPrelude
+                     , TypeApplications
 
   if flag(assert)
     cpp-options: -DASSERT=1
