@@ -8,22 +8,26 @@
 -- * The functions are generalized from the 'IO' monad to any monad which supports
 -- the requisite operations. This is done using 'MonadThrow', 'MonadCatch', and
 -- 'MonadMask' from "Control.Monad.Catch" in the @exceptions@ package. In fact, most
--- of this module consists of re-exports from that package. There are also a few
--- functions which are lifted using 'MonadIO' or 'MonadUnliftIO'.
+-- of this module consists of re-exports from that package.
 --
 -- * Several extra utility functions are included; in particular, better assertions
 -- and functions for dealing with asynchronous exceptions.
+--
+-- * All of the monadic throwing functions have an @xxxIO@ and @xxxM@ variant. This
+-- is for convenience when your constraints include 'MonadIO' but not 'MonadThrow'.
 module PreludePrime.Exception
 ( Control.Exception.Exception(toException, fromException, displayException)
 , Control.Exception.SomeException(..)
 
 -- * Throwing exceptions
 , Control.Exception.throw
+, throwIO
 , Control.Monad.Catch.MonadThrow(throwM)
 
 -- ** Errors
 , Prelude.undefined
 , Prelude.error
+, errorIO
 , errorM
 
 -- ** Assertions
@@ -55,10 +59,14 @@ module PreludePrime.Exception
 -- which can be convenient for logging. It also allows them to be implemented in terms of 'error'.
 , assert
 , assertMsg
+, assertIO
+, assertMsgIO
 , assertM
 , assertMsgM
 , ensure
 , ensureMsg
+, ensureIO
+, ensureMsgIO
 , ensureM
 , ensureMsgM
 
@@ -156,7 +164,16 @@ import Data.Maybe (isJust)
 import GHC.Exception (errorCallWithCallStackException)
 import GHC.Stack (HasCallStack, withFrozenCallStack, callStack)
 
--- | Like 'error', but is sequenced with respect to other monadic actions.
+-- | Lifted version of "Control.Exception"'s 'Control.Exception.throwIO'.
+throwIO :: (MonadIO m, Exception e) => e -> m a
+throwIO = liftIO . Control.Exception.throwIO
+
+-- | Like 'error', but is sequenced with respect to other IO actions.
+-- See 'Control.Exception.throwIO' for why this is necessary.
+errorIO :: (HasCallStack, MonadIO m) => String -> m a
+errorIO s = throwIO (errorCallWithCallStackException s callStack)
+
+-- | 'errorIO' generalized to 'MonadThrow'.
 errorM :: (HasCallStack, MonadThrow m) => String -> m a
 errorM s = throwM (errorCallWithCallStackException s callStack)
 
@@ -169,11 +186,20 @@ ensureMsg :: HasCallStack => Bool -> String -> a -> a
 ensureMsg True  _ a = a
 ensureMsg False s _ = withFrozenCallStack $ error s
 
--- | Like 'ensure', but is sequenced with respect to other monadic actions.
+-- | Like 'ensure', but is sequenced with respect to other IO actions.
+ensureIO :: (HasCallStack, MonadIO m) => Bool -> m ()
+ensureIO b = withFrozenCallStack $ ensureMsgIO b "Assertion failed"
+
+-- | Like 'ensureMsg', but is sequenced with respect to other IO actions.
+ensureMsgIO :: (HasCallStack, MonadIO m) => Bool -> String -> m ()
+ensureMsgIO True  _ = pure ()
+ensureMsgIO False s = withFrozenCallStack $ errorIO s
+
+-- | 'ensureIO' generalized to 'MonadThrow'.
 ensureM :: (HasCallStack, MonadThrow m) => Bool -> m ()
 ensureM b = withFrozenCallStack $ ensureMsgM b "Assertion failed"
 
--- | Like 'ensureMsg', but is sequenced with respect to other monadic actions.
+-- | 'ensureMsgIO' generalized to 'MonadThrow'.
 ensureMsgM :: (HasCallStack, MonadThrow m) => Bool -> String -> m ()
 ensureMsgM True  _ = pure ()
 ensureMsgM False s = withFrozenCallStack $ errorM s
@@ -197,6 +223,26 @@ assertMsg :: Bool -> String -> a -> a
 assertMsg _ _ a = a
 #endif
 {-# INLINE assertMsg #-}
+
+-- | Like 'ensureIO', but can be disabled via this package's @ignore-asserts@ flag.
+#if ASSERT
+assertIO :: (HasCallStack, MonadIO m) => Bool -> m ()
+assertIO b = withFrozenCallStack $ ensureIO b
+#else
+assertIO :: MonadIO m => Bool -> m ()
+assertIO _ = pure ()
+#endif
+{-# INLINE assertIO #-}
+
+-- | Like 'ensureMsgIO', but can be disabled via this package's @ignore-asserts@ flag.
+#if ASSERT
+assertMsgIO :: (HasCallStack, MonadIO m) => Bool -> String -> m ()
+assertMsgIO b msg = withFrozenCallStack $ ensureMsgIO b msg
+#else
+assertMsgIO :: MonadIO m => Bool -> String -> m ()
+assertMsgIO _ _ = pure ()
+#endif
+{-# INLINE assertMsgIO #-}
 
 -- | Like 'ensureM', but can be disabled via this package's @ignore-asserts@ flag.
 #if ASSERT

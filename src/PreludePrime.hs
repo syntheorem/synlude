@@ -163,8 +163,10 @@ module PreludePrime
 -- * Exceptions
 , PreludePrime.Exception.undefined
 , PreludePrime.Exception.error
+, PreludePrime.Exception.errorIO
 , PreludePrime.Exception.errorM
 , PreludePrime.Exception.throw
+, PreludePrime.Exception.throwIO
 , PreludePrime.Exception.throwM
 , PreludePrime.Exception.Exception(toException, fromException, displayException)
 , PreludePrime.Exception.SomeException(SomeException)
@@ -174,10 +176,14 @@ module PreludePrime
 -- | See "PreludePrime.Exception" for additional documentation.
 , PreludePrime.Exception.assert
 , PreludePrime.Exception.assertMsg
+, PreludePrime.Exception.assertIO
+, PreludePrime.Exception.assertMsgIO
 , PreludePrime.Exception.assertM
 , PreludePrime.Exception.assertMsgM
 , PreludePrime.Exception.ensure
 , PreludePrime.Exception.ensureMsg
+, PreludePrime.Exception.ensureIO
+, PreludePrime.Exception.ensureMsgIO
 , PreludePrime.Exception.ensureM
 , PreludePrime.Exception.ensureMsgM
 
