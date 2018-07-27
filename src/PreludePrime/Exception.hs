@@ -34,19 +34,11 @@ module PreludePrime.Exception
 --
 -- | Unlike the @assert@ from "Control.Exception", these assertions are not controlled
 -- by @-fignore-asserts@, but rather are enabled or disabled by the @ignore-asserts@ flag
--- that this package provides. There are two reasons for this:
---
--- * The @assert@ provided by "Control.Exception" isn't flexible; you can't pass a custom
--- message, and you can't define assert functions on top of it (such as 'assertM') because
--- the location in the printed message will be based on the call to @assert@ rather than
--- the call to the function wrapping it. Using GHC's 'HasCallStack', we can do better.
---
--- * GHC automatically disables asserts when optimizations are enabled at all, which in my
--- opinion is the wrong behavior. Generally I want my test builds to be optimized but also
--- have assertions enabled. You can set @-fno-ignore-asserts@ to get around this, but that
--- will only work for the current project, not its dependencies. On the other hand, everything
--- using assertions from @prelude-prime@ will have them enabled or disabled based on the flag,
--- which you can set in your @stack.yaml@ or via the command line.
+-- that this package provides. The reason for this is that the built-in @assert@ provided
+-- by "Control.Exception" isn't flexible; you can't pass a custom message, and you can't
+-- define assert functions on top of it (such as 'assertM') because the location in the
+-- printed message will be based on the call to @assert@ rather than the call to the
+-- function wrapping it. Using GHC's 'HasCallStack', we can do better.
 --
 -- For assertions that you want to be unconditionally enabled, use @ensureXXX@ instead of
 -- @assertXXX@. This is best used for cheap checks that are important to ensure program safety,
