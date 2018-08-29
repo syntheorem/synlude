@@ -31,6 +31,7 @@ module PreludePrime
 , Data.Maybe.Maybe(Just, Nothing)
 , Data.Maybe.maybe
 , Data.Maybe.fromMaybe
+, filterMaybe
 , Data.Maybe.isJust
 , Data.Maybe.isNothing
 
@@ -85,8 +86,8 @@ module PreludePrime
 , Prelude.Bounded(minBound, maxBound)
 
 -- * Semigroup and Monoid
-, Data.Semigroup.Semigroup((<>))
-, Data.Monoid.Monoid(mappend, mempty)
+, Data.Semigroup.Semigroup((<>), stimes, sconcat)
+, Data.Monoid.Monoid(mappend, mempty, mconcat)
 , (++)
 , concat
 , concatMap
@@ -129,8 +130,7 @@ module PreludePrime
     ( fold, foldMap
     , foldr, foldl
     , foldr', foldl'
-    , toList, elem
-    , null, length
+    , length, null
     )
 , Data.Foldable.for_
 , Data.Foldable.traverse_
@@ -144,6 +144,8 @@ module PreludePrime
 -- * Special folds
 , Data.Foldable.any
 , Data.Foldable.all
+, Data.Foldable.sum
+, Data.Foldable.product
 , filter
 , filterMap
 , filterA
@@ -154,7 +156,7 @@ module PreludePrime
 , Prelude.seq
 , (Prelude.$!)
 , (<$!>)
-, Control.DeepSeq.NFData
+, Control.DeepSeq.NFData(rnf)
 , Control.DeepSeq.deepseq
 , Control.DeepSeq.force
 , (Control.DeepSeq.$!!)
@@ -170,7 +172,7 @@ module PreludePrime
 , PreludePrime.Exception.throwM
 , PreludePrime.Exception.Exception(toException, fromException, displayException)
 , PreludePrime.Exception.SomeException(SomeException)
-, GHC.Stack.HasCallStack
+, GHC.Stack.HasCallStack -- included for ease of adding HasCallStack constraints
 
 -- ** Assertions
 -- | See "PreludePrime.Exception" for additional documentation.
@@ -206,10 +208,10 @@ module PreludePrime
 -- * Additional utilities
 , Data.Void.Void
 , Data.Proxy.Proxy(Proxy)
-, GHC.Exts.IsList(fromList)
+, GHC.Exts.IsList(toList, fromList)
 , GHC.TypeLits.Nat
 , GHC.TypeLits.Symbol
-, GHC.Generics.Generic
+, GHC.Generics.Generic -- included for easy deriving
 
 -- * Tracing
 -- | Provided in the prelude to avoid having to add and remove @import "Debug.Trace"@ statements when debugging.
@@ -269,8 +271,8 @@ import GHC.Exts (build)
 import Prelude ( Bool(True, False), Int, String, Maybe(Just, Nothing)
                , maybe, Functor(fmap), (<$>), Applicative(pure, (<*>))
                , Monoid(mappend, mempty), Foldable(foldr, null)
-               , Traversable, Read, reads, Show(show), (.), seq
-               , id, not, (&&), (||), ($)
+               , Traversable(traverse), Read, reads, Show(show), (.)
+               , seq, id, not, (&&), (||), ($)
                )
 
 -- NOTE: The rules pragmas for the following functions are mainly to
@@ -295,32 +297,36 @@ infixr 3 <&&>
 infixr 2 <||>
 {-# INLINE (<||>) #-}
 
+-- | @'Just' a@ when @p a@ is true, otherwise 'Nothing'.
+filterMaybe :: (a -> Bool) -> a -> Maybe a
+filterMaybe p a = if p a then Just a else Nothing
+
 -- | An infix alias for 'mappend'.
 (++) :: Monoid a => a -> a -> a
-(++) = Prelude.mappend
+(++) = Data.Monoid.mappend
 infixr 5 ++
 {-# INLINE (++) #-}
 
 -- | 'mappend' all elements of a container.
 concat :: (Foldable t, Monoid a) => t a -> a
-concat = foldr mappend mempty
+concat = Data.Monoid.mconcat . Data.Foldable.toList
 {-# INLINE[1] concat #-}
 {-# RULES "concat/List" concat = Prelude.concat #-}
 
 -- | Map over a container and 'mappend' the results.
 concatMap :: (Foldable t, Monoid b) => (a -> b) -> t a -> b
-concatMap f = foldr (mappend . f) mempty
+concatMap f = Data.Monoid.mconcat . map f . Data.Foldable.toList
 {-# INLINE[1] concatMap #-}
 {-# RULES "concatMap/List" concatMap = Prelude.concatMap #-}
 
 -- | Map over a container in an 'Applicative' context and 'mappend' the results.
 concatMapA :: (Applicative f, Foldable t, Monoid b) => (a -> f b) -> t a -> f b
-concatMapA f = foldr (\a b -> mappend <$> f a <*> b) (pure mempty)
+concatMapA f = fmap Data.Monoid.mconcat . traverse f . Data.Foldable.toList
 {-# INLINE concatMapA #-}
 
 -- | An alias for 'fmap'.
 map :: Functor f => (a -> b) -> f a -> f b
-map = Prelude.fmap
+map = Data.Functor.fmap
 {-# INLINE map #-}
 
 -- | @'replicateA' n act@ performs the action @n@ times, gathering the results.

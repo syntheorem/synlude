@@ -50,12 +50,14 @@ module PreludePrime.Exception
 -- This is primarily because 'ErrorCall' separates the error message from the source location,
 -- which can be convenient for logging. It also allows them to be implemented in terms of 'error'.
 , assert
+, assertPred
 , assertMsg
 , assertIO
 , assertMsgIO
 , assertM
 , assertMsgM
 , ensure
+, ensurePred
 , ensureMsg
 , ensureIO
 , ensureMsgIO
@@ -173,6 +175,10 @@ errorM s = throwM (errorCallWithCallStackException s callStack)
 ensure :: HasCallStack => Bool -> a -> a
 ensure b a = withFrozenCallStack $ ensureMsg b "Assertion failed" a
 
+-- | @ensurePred p a = 'ensure' (p a) a@
+ensurePred :: HasCallStack => (a -> Bool) -> a -> a
+ensurePred p a = withFrozenCallStack $ ensure (p a) a
+
 -- | Like 'ensure', but with the ability to provide a custom error message.
 ensureMsg :: HasCallStack => Bool -> String -> a -> a
 ensureMsg True  _ a = a
@@ -205,6 +211,16 @@ assert :: Bool -> a -> a
 assert _ a = a
 #endif
 {-# INLINE assert #-}
+
+-- | Like 'ensurePred', but can be disabled via this package's @ignore-asserts@ flag.
+#if ASSERT
+assertPred :: HasCallStack => (a -> Bool) -> a -> a
+assertPred p a = withFrozenCallStack $ ensurePred p a
+#else
+assertPred :: (a -> Bool) -> a -> a
+assertPred _ a = a
+#endif
+{-# INLINE assertPred #-}
 
 -- | Like 'ensureMsg', but can be disabled via this package's @ignore-asserts@ flag.
 #if ASSERT
