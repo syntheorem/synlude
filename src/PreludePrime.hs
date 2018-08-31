@@ -99,6 +99,7 @@ module PreludePrime
 , (Data.Functor.<$>)
 , (Data.Functor.<$)
 , (Data.Functor.$>)
+, (<&>)
 , Data.Functor.void
 , Data.Functor.Const.Const(Const, getConst)
 , Data.Functor.Identity.Identity(Identity, runIdentity)
@@ -272,7 +273,7 @@ import Prelude ( Bool(True, False), Int, String, Maybe(Just, Nothing)
                , maybe, Functor(fmap), (<$>), Applicative(pure, (<*>))
                , Monoid(mappend, mempty), Foldable(foldr, null)
                , Traversable(traverse), Read, reads, Show(show), (.)
-               , seq, id, not, (&&), (||), ($)
+               , seq, id, not, (&&), (||), ($), flip
                )
 
 -- NOTE: The rules pragmas for the following functions are mainly to
@@ -300,6 +301,14 @@ infixr 2 <||>
 -- | @'Just' a@ when @p a@ is true, otherwise 'Nothing'.
 filterMaybe :: (a -> Bool) -> a -> Maybe a
 filterMaybe p a = if p a then Just a else Nothing
+
+-- | Infix alias for @'flip' 'fmap'@.
+--
+-- Note that '<$>' is to '$' as '<&>' is to 'Data.Function.&'.
+(<&>) :: Functor f => f a -> (a -> b) -> f b
+(<&>) = flip fmap
+infixr 5 <&>
+{-# INLINE (<&>) #-}
 
 -- | An infix alias for 'mappend'.
 (++) :: Monoid a => a -> a -> a
