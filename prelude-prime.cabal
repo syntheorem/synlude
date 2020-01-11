@@ -1,10 +1,10 @@
-cabal-version: >= 1.10
+cabal-version: 1.12
 
--- This file has been generated from package.yaml by hpack version 0.29.4.
+-- This file has been generated from package.yaml by hpack version 0.31.2.
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: f3a18c1e790c7e4485b5eceae3e61b8c2e0e25cb657af2fec05c85d63a800169
+-- hash: 4a2385312f78ed23b309f482cdacd85b565b2d05e2b0df4c8aae7ea89c36f506
 
 name:           prelude-prime
 version:        0.1.0.0
@@ -38,4 +38,4 @@ library
     cpp-options: -DASSERT=1
   ghc-options: -Wall -Werror -fwarn-tabs
   default-language: Haskell2010
-  default-extensions: NoImplicitPrelude
+  default-extensions: NoImplicitPrelude MonadFailDesugaring

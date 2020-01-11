@@ -310,7 +310,8 @@ allowInterrupt = liftIO Control.Exception.allowInterrupt
 
 -- | Lifted version of "Control.Exception"'s 'Control.Exception.interruptible'.
 interruptible :: MonadUnliftIO m => m a -> m a
-interruptible action = withRunInIO ($ action)
+interruptible action = withRunInIO $ \runInIO ->
+  Control.Exception.interruptible (runInIO action)
 
 -- | Like 'catch', but doesn't catch asynchronous exceptions.
 catchSync :: (MonadCatch m, Exception e) => m a -> (e -> m a) -> m a
@@ -328,7 +329,7 @@ catchSyncJust f = catchJust (\e -> if isAsyncException e then Nothing else f e)
 catchSyncAll :: MonadCatch m => m a -> (SomeException -> m a) -> m a
 catchSyncAll = catchSync
 
--- | Like 'catch', but doesn't catch asynchronous exceptions.
+-- | Like 'handle', but doesn't catch asynchronous exceptions.
 handleSync :: (MonadCatch m, Exception e) => (e -> m a) -> m a -> m a
 handleSync = flip catchSync
 

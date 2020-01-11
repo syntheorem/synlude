@@ -11,6 +11,10 @@ module PreludePrime
 , (Data.Function.$)
 , (Data.Function.&)
 
+-- * Tuples
+, Data.Tuple.fst
+, Data.Tuple.snd
+
 -- * Bool
 , Data.Bool.Bool(True, False)
 , Data.Bool.bool
@@ -56,6 +60,7 @@ module PreludePrime
 
 -- ** Arbitrary precision
 , Prelude.Integer
+, Numeric.Natural.Natural
 , Prelude.Rational
 , (Data.Ratio.%)
 
@@ -87,11 +92,7 @@ module PreludePrime
 
 -- * Semigroup and Monoid
 , Data.Semigroup.Semigroup((<>), stimes, sconcat)
-, Data.Monoid.Monoid(mappend, mempty, mconcat)
-, (++)
-, concat
-, concatMap
-, concatMapA
+, Data.Monoid.Monoid(mempty, mappend, mconcat)
 
 -- * Functor
 , Data.Functor.Functor(fmap)
@@ -119,6 +120,7 @@ module PreludePrime
 -- * Monad
 , Control.Monad.Monad((>>=), (>>), return)
 , Control.Monad.Fail.MonadFail(fail)
+, Control.Monad.Fix.MonadFix(mfix)
 , (Control.Monad.=<<)
 , (Control.Monad.>=>)
 , (Control.Monad.<=<)
@@ -132,6 +134,7 @@ module PreludePrime
     , foldr, foldl
     , foldr', foldl'
     , length, null
+    , toList
     )
 , Data.Foldable.for_
 , Data.Foldable.traverse_
@@ -143,10 +146,15 @@ module PreludePrime
 , sequence
 
 -- * Special folds
-, Data.Foldable.any
+, Data.Foldable.concat
+, Data.Foldable.concatMap
+, Data.Foldable.and
+, Data.Foldable.or
 , Data.Foldable.all
+, Data.Foldable.any
 , Data.Foldable.sum
 , Data.Foldable.product
+-- TODO: pull filters from Data.Witherable instead?
 , filter
 , filterMap
 , filterA
@@ -209,7 +217,9 @@ module PreludePrime
 -- * Additional utilities
 , Data.Void.Void
 , Data.Proxy.Proxy(Proxy)
-, GHC.Exts.IsList(toList, fromList)
+, GHC.Exts.IsList(fromList)
+, Data.Kind.Type
+, Data.Kind.Constraint
 , GHC.TypeLits.Nat
 , GHC.TypeLits.Symbol
 , GHC.Generics.Generic -- included for easy deriving
@@ -230,6 +240,7 @@ import qualified Control.DeepSeq
 import qualified Control.Exception
 import qualified Control.Monad
 import qualified Control.Monad.Fail
+import qualified Control.Monad.Fix
 import qualified Data.Bool
 import qualified Data.Char
 import qualified Data.Coerce
@@ -241,6 +252,7 @@ import qualified Data.Functor
 import qualified Data.Functor.Const
 import qualified Data.Functor.Identity
 import qualified Data.Int
+import qualified Data.Kind
 import qualified Data.Maybe
 import qualified Data.Monoid
 import qualified Data.Ord
@@ -248,6 +260,7 @@ import qualified Data.Ratio
 import qualified Data.Semigroup
 import qualified Data.String
 import qualified Data.Traversable
+import qualified Data.Tuple
 import qualified Data.Typeable
 import qualified Data.Proxy
 import qualified Data.Word
@@ -257,6 +270,7 @@ import qualified GHC.Exts
 import qualified GHC.Generics
 import qualified GHC.Stack
 import qualified GHC.TypeLits
+import qualified Numeric.Natural
 import qualified Prelude
 import qualified PreludePrime.Exception
 import qualified System.IO
@@ -271,9 +285,9 @@ import GHC.Exts (build)
 
 import Prelude ( Bool(True, False), Int, String, Maybe(Just, Nothing)
                , maybe, Functor(fmap), (<$>), Applicative(pure, (<*>))
-               , Monoid(mappend, mempty), Foldable(foldr, null)
-               , Traversable(traverse), Read, reads, Show(show), (.)
-               , seq, id, not, (&&), (||), ($), flip
+               , Foldable(foldr, null), Traversable(traverse), Read
+               , reads, Show(show), (.), seq, id, not, (&&), (||), ($)
+               , flip
                )
 
 -- NOTE: The rules pragmas for the following functions are mainly to
@@ -309,29 +323,6 @@ filterMaybe p a = if p a then Just a else Nothing
 (<&>) = flip fmap
 infixr 5 <&>
 {-# INLINE (<&>) #-}
-
--- | An infix alias for 'mappend'.
-(++) :: Monoid a => a -> a -> a
-(++) = Data.Monoid.mappend
-infixr 5 ++
-{-# INLINE (++) #-}
-
--- | 'mappend' all elements of a container.
-concat :: (Foldable t, Monoid a) => t a -> a
-concat = Data.Monoid.mconcat . Data.Foldable.toList
-{-# INLINE[1] concat #-}
-{-# RULES "concat/List" concat = Prelude.concat #-}
-
--- | Map over a container and 'mappend' the results.
-concatMap :: (Foldable t, Monoid b) => (a -> b) -> t a -> b
-concatMap f = Data.Monoid.mconcat . map f . Data.Foldable.toList
-{-# INLINE[1] concatMap #-}
-{-# RULES "concatMap/List" concatMap = Prelude.concatMap #-}
-
--- | Map over a container in an 'Applicative' context and 'mappend' the results.
-concatMapA :: (Applicative f, Foldable t, Monoid b) => (a -> f b) -> t a -> f b
-concatMapA f = fmap Data.Monoid.mconcat . traverse f . Data.Foldable.toList
-{-# INLINE concatMapA #-}
 
 -- | An alias for 'fmap'.
 map :: Functor f => (a -> b) -> f a -> f b
