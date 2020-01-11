@@ -203,7 +203,7 @@ ensureMsgM True  _ = pure ()
 ensureMsgM False s = withFrozenCallStack $ errorM s
 
 -- | Like 'ensure', but can be disabled via this package's @ignore-asserts@ flag.
-#if ASSERT
+#if !IGNORE_ASSERTS
 assert :: HasCallStack => Bool -> a -> a
 assert b a = withFrozenCallStack $ ensure b a
 #else
@@ -213,7 +213,7 @@ assert _ a = a
 {-# INLINE assert #-}
 
 -- | Like 'ensurePred', but can be disabled via this package's @ignore-asserts@ flag.
-#if ASSERT
+#if !IGNORE_ASSERTS
 assertPred :: HasCallStack => (a -> Bool) -> a -> a
 assertPred p a = withFrozenCallStack $ ensurePred p a
 #else
@@ -223,7 +223,7 @@ assertPred _ a = a
 {-# INLINE assertPred #-}
 
 -- | Like 'ensureMsg', but can be disabled via this package's @ignore-asserts@ flag.
-#if ASSERT
+#if !IGNORE_ASSERTS
 assertMsg :: HasCallStack => Bool -> String -> a -> a
 assertMsg b msg a = withFrozenCallStack $ ensureMsg b msg a
 #else
@@ -233,7 +233,7 @@ assertMsg _ _ a = a
 {-# INLINE assertMsg #-}
 
 -- | Like 'ensureIO', but can be disabled via this package's @ignore-asserts@ flag.
-#if ASSERT
+#if !IGNORE_ASSERTS
 assertIO :: (HasCallStack, MonadIO m) => Bool -> m ()
 assertIO b = withFrozenCallStack $ ensureIO b
 #else
@@ -243,7 +243,7 @@ assertIO _ = pure ()
 {-# INLINE assertIO #-}
 
 -- | Like 'ensureMsgIO', but can be disabled via this package's @ignore-asserts@ flag.
-#if ASSERT
+#if !IGNORE_ASSERTS
 assertMsgIO :: (HasCallStack, MonadIO m) => Bool -> String -> m ()
 assertMsgIO b msg = withFrozenCallStack $ ensureMsgIO b msg
 #else
@@ -253,7 +253,7 @@ assertMsgIO _ _ = pure ()
 {-# INLINE assertMsgIO #-}
 
 -- | Like 'ensureM', but can be disabled via this package's @ignore-asserts@ flag.
-#if ASSERT
+#if !IGNORE_ASSERTS
 assertM :: (HasCallStack, MonadThrow m) => Bool -> m ()
 assertM b = withFrozenCallStack $ ensureM b
 #else
@@ -263,7 +263,7 @@ assertM _ = pure ()
 {-# INLINE assertM #-}
 
 -- | Like 'ensureMsgM', but can be disabled via this package's @ignore-asserts@ flag.
-#if ASSERT
+#if !IGNORE_ASSERTS
 assertMsgM :: (HasCallStack, MonadThrow m) => Bool -> String -> m ()
 assertMsgM b msg = withFrozenCallStack $ ensureMsgM b msg
 #else

@@ -1,11 +1,5 @@
 cabal-version: 1.12
 
--- This file has been generated from package.yaml by hpack version 0.31.2.
---
--- see: https://github.com/sol/hpack
---
--- hash: 4a2385312f78ed23b309f482cdacd85b565b2d05e2b0df4c8aae7ea89c36f506
-
 name:           prelude-prime
 version:        0.1.0.0
 synopsis:       My custom prelude, plus additional utilities
@@ -21,21 +15,33 @@ flag ignore-asserts
   default: False
 
 library
-  hs-source-dirs:
-      src
+  hs-source-dirs: src
   exposed-modules:
-      PreludePrime
-      PreludePrime.Exception
-      PreludePrime.Numeric
+    PreludePrime
+    PreludePrime.Exception
+    PreludePrime.Numeric
+
   build-depends:
-      base >=4.10 && <5
-    , deepseq
-    , exceptions
-    , unliftio-core
+      base >=4.11 && <5
+    , deepseq ^>=1.4.3
+    , exceptions ^>=0.10.0
+    , unliftio-core ^>=0.1.1
+
+  ghc-options:
+    -Wall
+    -Wcompat
+    -Wredundant-constraints
+    -Wincomplete-uni-patterns
+    -Wincomplete-record-updates
+    -fwarn-tabs
+
   if flag(ignore-asserts)
-    cpp-options: -DASSERT=0
+    cpp-options: -DIGNORE_ASSERTS=1
   else
-    cpp-options: -DASSERT=1
-  ghc-options: -Wall -Werror -fwarn-tabs
+    cpp-options: -DIGNORE_ASSERTS=0
+
   default-language: Haskell2010
-  default-extensions: NoImplicitPrelude MonadFailDesugaring
+  default-extensions: NoImplicitPrelude
+
+  if impl(ghc < 8.8)
+    default-extensions: MonadFailDesugaring
