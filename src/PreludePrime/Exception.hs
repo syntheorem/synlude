@@ -16,7 +16,8 @@
 -- * All of the monadic throwing functions have an @xxxIO@ and @xxxM@ variant. This
 -- is for convenience when your constraints include 'MonadIO' but not 'MonadThrow'.
 module PreludePrime.Exception
-( Control.Exception.Exception(toException, fromException, displayException)
+( Partial
+, Control.Exception.Exception(toException, fromException, displayException)
 , Control.Exception.SomeException(..)
 
 -- * Throwing exceptions
@@ -157,6 +158,11 @@ import Control.Monad.IO.Unlift (MonadUnliftIO(withRunInIO))
 import Data.Maybe (isJust)
 import GHC.Exception (errorCallWithCallStackException)
 import GHC.Stack (HasCallStack, withFrozenCallStack, callStack)
+
+-- | A type constraint which indicates that a function may throw an exception.
+-- It is an alias for 'HasCallStack' as well so that such functions can provide
+-- better stack traces with their exceptions.
+type Partial = HasCallStack
 
 -- | Lifted version of "Control.Exception"'s 'Control.Exception.throwIO'.
 throwIO :: (MonadIO m, Exception e) => e -> m a

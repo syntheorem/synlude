@@ -181,7 +181,7 @@ module PreludePrime
 , PreludePrime.Exception.throwM
 , PreludePrime.Exception.Exception(toException, fromException, displayException)
 , PreludePrime.Exception.SomeException(SomeException)
-, GHC.Stack.HasCallStack -- included for ease of adding HasCallStack constraints
+, PreludePrime.Exception.Partial
 
 -- ** Assertions
 -- | See "PreludePrime.Exception" for additional documentation.
