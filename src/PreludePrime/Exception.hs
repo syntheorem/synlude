@@ -1,20 +1,18 @@
-{-# LANGUAGE CPP, TypeApplications #-}
+{-# LANGUAGE ConstraintKinds, CPP, TypeApplications #-}
 
 -- | Replacement for "Control.Exception".
 --
--- This module is mostly a drop-in replacement for "Control.Exception", with two
--- key differences:
+-- This module is mostly a drop-in replacement for "Control.Exception", with a few key differences:
 --
--- * The functions are generalized from the 'IO' monad to any monad which supports
--- the requisite operations. This is done using 'MonadThrow', 'MonadCatch', and
--- 'MonadMask' from "Control.Monad.Catch" in the @exceptions@ package. In fact, most
--- of this module consists of re-exports from that package.
+-- * The functions are generalized from the 'IO' monad to any monad which supports the requisite operations. This is
+-- done using 'MonadThrow', 'MonadCatch', and 'MonadMask' from "Control.Monad.Catch" in the @exceptions@ package. In
+-- fact, most of this module consists of re-exports from that package.
 --
--- * Several extra utility functions are included; in particular, better assertions
--- and functions for dealing with asynchronous exceptions.
+-- * Several extra utility functions are included; in particular, better assertions and functions for dealing with
+-- asynchronous exceptions.
 --
--- * All of the monadic throwing functions have an @xxxIO@ and @xxxM@ variant. This
--- is for convenience when your constraints include 'MonadIO' but not 'MonadThrow'.
+-- * All of the monadic throwing functions have an @xxxIO@ and @xxxM@ variant. This is for convenience when your
+-- constraints include 'MonadIO' but not 'MonadThrow'.
 module PreludePrime.Exception
 ( Partial
 , Control.Exception.Exception(toException, fromException, displayException)
@@ -33,23 +31,21 @@ module PreludePrime.Exception
 
 -- ** Assertions
 --
--- | Unlike the @assert@ from "Control.Exception", these assertions are not controlled
--- by @-fignore-asserts@, but rather are enabled or disabled by the @ignore-asserts@ flag
--- that this package provides. The reason for this is that the built-in @assert@ provided
--- by "Control.Exception" isn't flexible; you can't pass a custom message, and you can't
+-- | Unlike the @assert@ from "Control.Exception", these assertions are not controlled by @-fignore-asserts@, but rather
+-- are enabled or disabled by the @ignore-asserts@ flag that this package provides. The reason for this is that the
+-- built-in @assert@ provided by "Control.Exception" isn't flexible; you can't pass a custom message, and you can't
 -- define assert functions on top of it (such as 'assertM') because the location in the
 -- printed message will be based on the call to @assert@ rather than the call to the
 -- function wrapping it. Using GHC's 'HasCallStack', we can do better.
 --
--- For assertions that you want to be unconditionally enabled, use @ensureXXX@ instead of
--- @assertXXX@. This is best used for cheap checks that are important to ensure program safety,
--- such as checking that the index into an array is in bounds. Note though that best practice
--- is to throw a custom exception instead, allowing users to potentially catch it and deal with
--- the specific error. However, using 'ensure' is usually more convenient while developing.
+-- For assertions that you want to be unconditionally enabled, use @ensureXXX@ instead of @assertXXX@. This is best used
+-- for cheap checks that are important to ensure program safety, such as checking that the index into an array is in
+-- bounds. Note though that best practice is to throw a custom exception instead, allowing users to potentially catch it
+-- and deal with the specific error. However, using 'ensure' is usually more convenient while developing.
 --
--- Finally, these functions do not throw 'AssertionFailed' exceptions, but rather 'ErrorCall'.
--- This is primarily because 'ErrorCall' separates the error message from the source location,
--- which can be convenient for logging. It also allows them to be implemented in terms of 'error'.
+-- Finally, these functions do not throw 'AssertionFailed' exceptions, but rather 'ErrorCall'. This is primarily because
+-- 'ErrorCall' separates the error message from the source location, which can be convenient for logging. It also allows
+-- them to be implemented in terms of 'error'.
 , assert
 , assertPred
 , assertMsg
@@ -102,7 +98,8 @@ module PreludePrime.Exception
 , interruptible
 
 -- ** Catching only synchronous exceptions
--- | Versions of the catch functions which don't catch asynchronous exceptions.
+-- | Variants of the catch functions which don't catch asynchronous exceptions.
+--
 -- See 'isAsyncException' for more details on which exceptions are considered asynchronous.
 , catchSync
 , catchSyncIf
@@ -150,7 +147,6 @@ module PreludePrime.Exception
 import qualified Control.Exception
 import Control.Monad.Catch
 
-import Prelude
 import Control.Concurrent (ThreadId)
 import Control.Exception (MaskingState, SomeAsyncException)
 import Control.Monad.IO.Class (MonadIO(liftIO))
@@ -160,8 +156,8 @@ import GHC.Exception (errorCallWithCallStackException)
 import GHC.Stack (HasCallStack, withFrozenCallStack, callStack)
 
 -- | A type constraint which indicates that a function may throw an exception.
--- It is an alias for 'HasCallStack' as well so that such functions can provide
--- better stack traces with their exceptions.
+--
+-- It is an alias for 'HasCallStack' so that such functions can provide better stack traces with their exceptions.
 type Partial = HasCallStack
 
 -- | Lifted version of "Control.Exception"'s 'Control.Exception.throwIO'.
@@ -169,7 +165,6 @@ throwIO :: (MonadIO m, Exception e) => e -> m a
 throwIO = liftIO . Control.Exception.throwIO
 
 -- | Like 'error', but is sequenced with respect to other IO actions.
--- See 'Control.Exception.throwIO' for why this is necessary.
 errorIO :: (HasCallStack, MonadIO m) => String -> m a
 errorIO s = throwIO (errorCallWithCallStackException s callStack)
 
@@ -209,7 +204,7 @@ ensureMsgM True  _ = pure ()
 ensureMsgM False s = withFrozenCallStack $ errorM s
 
 -- | Like 'ensure', but can be disabled via this package's @ignore-asserts@ flag.
-#if !IGNORE_ASSERTS
+#if !PRELUDE_PRIME_IGNORE_ASSERTS
 assert :: HasCallStack => Bool -> a -> a
 assert b a = withFrozenCallStack $ ensure b a
 #else
@@ -219,7 +214,7 @@ assert _ a = a
 {-# INLINE assert #-}
 
 -- | Like 'ensurePred', but can be disabled via this package's @ignore-asserts@ flag.
-#if !IGNORE_ASSERTS
+#if !PRELUDE_PRIME_IGNORE_ASSERTS
 assertPred :: HasCallStack => (a -> Bool) -> a -> a
 assertPred p a = withFrozenCallStack $ ensurePred p a
 #else
@@ -229,7 +224,7 @@ assertPred _ a = a
 {-# INLINE assertPred #-}
 
 -- | Like 'ensureMsg', but can be disabled via this package's @ignore-asserts@ flag.
-#if !IGNORE_ASSERTS
+#if !PRELUDE_PRIME_IGNORE_ASSERTS
 assertMsg :: HasCallStack => Bool -> String -> a -> a
 assertMsg b msg a = withFrozenCallStack $ ensureMsg b msg a
 #else
@@ -239,7 +234,7 @@ assertMsg _ _ a = a
 {-# INLINE assertMsg #-}
 
 -- | Like 'ensureIO', but can be disabled via this package's @ignore-asserts@ flag.
-#if !IGNORE_ASSERTS
+#if !PRELUDE_PRIME_IGNORE_ASSERTS
 assertIO :: (HasCallStack, MonadIO m) => Bool -> m ()
 assertIO b = withFrozenCallStack $ ensureIO b
 #else
@@ -249,7 +244,7 @@ assertIO _ = pure ()
 {-# INLINE assertIO #-}
 
 -- | Like 'ensureMsgIO', but can be disabled via this package's @ignore-asserts@ flag.
-#if !IGNORE_ASSERTS
+#if !PRELUDE_PRIME_IGNORE_ASSERTS
 assertMsgIO :: (HasCallStack, MonadIO m) => Bool -> String -> m ()
 assertMsgIO b msg = withFrozenCallStack $ ensureMsgIO b msg
 #else
@@ -259,7 +254,7 @@ assertMsgIO _ _ = pure ()
 {-# INLINE assertMsgIO #-}
 
 -- | Like 'ensureM', but can be disabled via this package's @ignore-asserts@ flag.
-#if !IGNORE_ASSERTS
+#if !PRELUDE_PRIME_IGNORE_ASSERTS
 assertM :: (HasCallStack, MonadThrow m) => Bool -> m ()
 assertM b = withFrozenCallStack $ ensureM b
 #else
@@ -269,7 +264,7 @@ assertM _ = pure ()
 {-# INLINE assertM #-}
 
 -- | Like 'ensureMsgM', but can be disabled via this package's @ignore-asserts@ flag.
-#if !IGNORE_ASSERTS
+#if !PRELUDE_PRIME_IGNORE_ASSERTS
 assertMsgM :: (HasCallStack, MonadThrow m) => Bool -> String -> m ()
 assertMsgM b msg = withFrozenCallStack $ ensureMsgM b msg
 #else
@@ -284,13 +279,13 @@ throwTo tid e = liftIO $ Control.Exception.throwTo tid e
 
 -- | Predicate to test if an exception is asynchronous.
 --
--- It's important to note that this is determined by the type of the exception; specifically,
--- whether the type uses 'asyncExceptionToException' as its implementation for 'toException'.
--- Since 'throw' and 'throwTo' don't constrain the types of exceptions thrown, this function
--- does not prove whether the given exception was actually thrown asynchronously or not.
+-- It's important to note that this is determined by the type of the exception; specifically, whether the type uses
+-- 'asyncExceptionToException' as its implementation for 'toException'. Since 'throw' and 'throwTo' don't constrain the
+-- types of exceptions thrown, this function does not prove whether the given exception was actually thrown
+-- asynchronously or not.
 --
--- It is therefore recommended to only use 'throw' for synchronous exception types and only
--- use 'throwTo' for asynchronous exception types.
+-- It is therefore recommended to only use 'throw' for synchronous exception types and only use 'throwTo' for
+-- asynchronous exception types.
 isAsyncException :: Exception e => e -> Bool
 isAsyncException = isJust . fromException @SomeAsyncException . toException
 

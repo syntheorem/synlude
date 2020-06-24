@@ -1,3 +1,5 @@
+{-# LANGUAGE NoImplicitPrelude #-}
+
 -- | An alternative prelude for modern Haskell.
 module PreludePrime
 (
@@ -14,6 +16,8 @@ module PreludePrime
 -- * Tuples
 , Data.Tuple.fst
 , Data.Tuple.snd
+, Data.Tuple.curry
+, Data.Tuple.uncurry
 
 -- * Bool
 , Data.Bool.Bool(True, False)
@@ -35,7 +39,6 @@ module PreludePrime
 , Data.Maybe.Maybe(Just, Nothing)
 , Data.Maybe.maybe
 , Data.Maybe.fromMaybe
-, filterMaybe
 , Data.Maybe.isJust
 , Data.Maybe.isNothing
 
@@ -45,26 +48,28 @@ module PreludePrime
 , Data.Either.isLeft
 , Data.Either.isRight
 
--- * Char
+-- * Char and String
 , Data.Char.Char
 , Data.String.String
-, Data.String.IsString(fromString)
+, Text.Show.Show(show)
+, Text.Read.Read
+, tryRead
 
 -- * Numeric
 
--- ** Core types
+-- ** Basic types
 , Prelude.Int
 , Prelude.Word
 , Prelude.Float
 , Prelude.Double
 
--- ** Arbitrary precision
+-- ** Arbitrary precision types
 , Prelude.Integer
 , Numeric.Natural.Natural
 , Prelude.Rational
 , (Data.Ratio.%)
 
--- ** Explicit precision
+-- ** Explicit precision types
 , Data.Int.Int8
 , Data.Int.Int16
 , Data.Int.Int32
@@ -74,25 +79,38 @@ module PreludePrime
 , Data.Word.Word32
 , Data.Word.Word64
 
--- ** Classes and functions
-, Prelude.Num((+), (-), (*), negate, fromInteger)
+-- ** @class Num@
+, Prelude.Num((+), (-), (*), negate, abs, signum, fromInteger)
 , Prelude.subtract
+
+-- ** @class Real@
 , Prelude.Real(toRational)
+
+-- ** @class Integral@
 , Prelude.Integral(quot, rem, div, mod, quotRem, divMod, toInteger)
-, Prelude.fromIntegral
+, Prelude.even
+, Prelude.odd
+, Prelude.gcd
+, Prelude.lcm
 , (Prelude.^)
-, Prelude.Fractional((/), fromRational)
+, Prelude.fromIntegral
+
+-- ** @class Fractional@
+, Prelude.Fractional((/), recip, fromRational)
 , Prelude.realToFrac
 , (Prelude.^^)
+
+-- ** @class RealFrac@
 , Prelude.RealFrac(properFraction, truncate, round, ceiling, floor)
 
 -- * Enumerations
+-- primarily included because these classes aren't exported anywhere else.
 , Prelude.Enum(succ, pred, toEnum, fromEnum, enumFrom, enumFromThen, enumFromTo, enumFromThenTo)
 , Prelude.Bounded(minBound, maxBound)
 
 -- * Semigroup and Monoid
-, Data.Semigroup.Semigroup((<>), stimes, sconcat)
-, Data.Monoid.Monoid(mempty, mappend, mconcat)
+, Data.Semigroup.Semigroup((<>))
+, Data.Monoid.Monoid(mempty, mconcat)
 
 -- * Functor
 , Data.Functor.Functor(fmap)
@@ -100,7 +118,7 @@ module PreludePrime
 , (Data.Functor.<$>)
 , (Data.Functor.<$)
 , (Data.Functor.$>)
-, (<&>)
+, (Data.Functor.<&>)
 , Data.Functor.void
 , Data.Functor.Const.Const(Const, getConst)
 , Data.Functor.Identity.Identity(Identity, runIdentity)
@@ -125,51 +143,70 @@ module PreludePrime
 , (Control.Monad.>=>)
 , (Control.Monad.<=<)
 , Control.Monad.join
-, Control.Monad.foldM
-, Control.Monad.foldM_
+
+-- * Alternative
+, Control.Applicative.Alternative(empty, (<|>), some, many)
+, Control.Applicative.optional
+, Control.Monad.guard
 
 -- * Foldable
-, Data.Foldable.Foldable
-    ( fold, foldMap
-    , foldr, foldl
-    , foldr', foldl'
-    , length, null
-    , toList
-    )
-, Data.Foldable.for_
+, Data.Foldable.Foldable (fold, foldMap, foldr, foldr', foldl, foldl')
+
+-- ** Applicative folds
 , Data.Foldable.traverse_
-, sequence_
+, Data.Foldable.for_
+, Data.Foldable.sequenceA_
+, Data.Foldable.asum
 
--- * Traversable
-, Data.Traversable.Traversable(traverse)
-, Data.Traversable.for
-, sequence
+-- ** Monadic folds
+, Data.Foldable.foldlM
+, Data.Foldable.foldrM
+, Data.Foldable.mapM_
+, Data.Foldable.forM_
+, Data.Foldable.sequence_
 
--- * Special folds
-, Data.Foldable.concat
-, Data.Foldable.concatMap
+-- ** Specialized folds
+, Data.Foldable.toList
+, Data.Foldable.length
+, Data.Foldable.null
+, Data.Foldable.elem
+, Data.Foldable.find
 , Data.Foldable.and
 , Data.Foldable.or
 , Data.Foldable.all
 , Data.Foldable.any
 , Data.Foldable.sum
 , Data.Foldable.product
--- TODO: pull filters from Data.Witherable instead?
-, filter
+, Data.Foldable.maximum
+, Data.Foldable.minimum
+, Data.Foldable.maximumBy
+, Data.Foldable.minimumBy
+
+-- * Traversable
+, Data.Traversable.Traversable(traverse, sequenceA, mapM, sequence)
+, Data.Traversable.for
+, Data.Traversable.forM
+
+-- * Filterable
+-- | Abstraction of data structures which can be filtered, from "Data.Witherable.Class".
+, Data.Witherable.Class.Filterable
+, Data.Witherable.Class.filter
 , filterMap
-, filterA
+, Data.Witherable.Class.Witherable
+, Data.Witherable.Class.filterA
 , filterMapA
+, filterMapM
 
 -- * Forcing evaluation
 , evaluate
 , Prelude.seq
 , (Prelude.$!)
-, (<$!>)
-, Control.DeepSeq.NFData(rnf)
+, (Control.Monad.<$!>)
+, Control.DeepSeq.NFData
 , Control.DeepSeq.deepseq
 , Control.DeepSeq.force
 , (Control.DeepSeq.$!!)
-, (<$!!>)
+, (Control.DeepSeq.<$!!>)
 
 -- * Exceptions
 , PreludePrime.Exception.undefined
@@ -198,35 +235,29 @@ module PreludePrime
 , PreludePrime.Exception.ensureM
 , PreludePrime.Exception.ensureMsgM
 
--- * Showing and reading values
-, Text.Show.Show(show)
-, Text.Read.Read
-, tryRead
-
 -- * IO
 -- | Functions which do actual IO should be imported from "System.IO".
 , System.IO.IO
 , Control.Monad.IO.Class.MonadIO(liftIO)
 
 -- * Type casts and coercions
+, Data.Typeable.Typeable
 , Data.Coerce.Coercible
 , Data.Coerce.coerce
-, Data.Typeable.Typeable
-, Data.Typeable.cast
 
--- * Additional utilities
-, Data.Void.Void
-, Data.Proxy.Proxy(Proxy)
-, GHC.Exts.IsList(fromList)
+-- * Kinds
 , Data.Kind.Type
 , Data.Kind.Constraint
 , GHC.TypeLits.Nat
 , GHC.TypeLits.Symbol
+
+-- * Additional types
+, Data.Void.Void
+, Data.Proxy.Proxy(Proxy)
 , GHC.Generics.Generic -- included for easy deriving
 
 -- * Tracing
 -- | Provided in the prelude to avoid having to add and remove @import "Debug.Trace"@ statements when debugging.
--- Also note that I modified some of the combinator functions to be more generally useful.
 , Debug.Trace.trace
 , traceShow
 , Debug.Trace.traceStack
@@ -263,10 +294,10 @@ import qualified Data.Traversable
 import qualified Data.Tuple
 import qualified Data.Typeable
 import qualified Data.Proxy
+import qualified Data.Witherable.Class
 import qualified Data.Word
 import qualified Data.Void
 import qualified Debug.Trace
-import qualified GHC.Exts
 import qualified GHC.Generics
 import qualified GHC.Stack
 import qualified GHC.TypeLits
@@ -277,27 +308,18 @@ import qualified System.IO
 import qualified Text.Read
 import qualified Text.Show
 
-import Control.DeepSeq (NFData, deepseq)
 import Control.Monad (when)
 import Control.Monad.IO.Class (MonadIO(liftIO))
-import Data.Bool (bool)
-import GHC.Exts (build)
+import Data.Witherable.Class (Filterable, Witherable)
 
-import Prelude ( Bool(True, False), Int, String, Maybe(Just, Nothing)
-               , maybe, Functor(fmap), (<$>), Applicative(pure, (<*>))
-               , Foldable(foldr, null), Traversable(traverse), Read
-               , reads, Show(show), (.), seq, id, not, (&&), (||), ($)
-               , flip
-               )
-
--- NOTE: The rules pragmas for the following functions are mainly to
--- make use of existing rules for the list-specific versions in base.
--- There are also "build" rules to enable list fusion optimizations.
+import Prelude
+  ( Bool, Int, String, Maybe(Just, Nothing), Functor, Applicative
+  , Monad, Read, reads, null, Show(show), (.), not, (&&), (||), ($)
+  )
 
 -- | A lifted version of '&&'.
 --
--- Useful when combined with the 'Applicative' instance for functions,
--- e.g. @(isSpace \<&&\> isControl) c@.
+-- Useful when combined with the 'Applicative' instance for functions, e.g. @(isSpace \<&&\> isControl) c@.
 (<&&>) :: Applicative f => f Bool -> f Bool -> f Bool
 (<&&>) = Control.Applicative.liftA2 (&&)
 infixr 3 <&&>
@@ -305,111 +327,68 @@ infixr 3 <&&>
 
 -- | A lifted version of '||'.
 --
--- Useful when combined with the 'Applicative' instance for functions,
--- e.g. @(isSpace \<||\> isControl) c@.
+-- Useful when combined with the 'Applicative' instance for functions, e.g. @(isSpace \<||\> isControl) c@.
 (<||>) :: Applicative f => f Bool -> f Bool -> f Bool
 (<||>) = Control.Applicative.liftA2 (||)
 infixr 2 <||>
 {-# INLINE (<||>) #-}
 
--- | @'Just' a@ when @p a@ is true, otherwise 'Nothing'.
-filterMaybe :: (a -> Bool) -> a -> Maybe a
-filterMaybe p a = if p a then Just a else Nothing
-
--- | Infix alias for @'flip' 'fmap'@.
---
--- Note that '<$>' is to '$' as '<&>' is to 'Data.Function.&'.
-(<&>) :: Functor f => f a -> (a -> b) -> f b
-(<&>) = flip fmap
-infixr 5 <&>
-{-# INLINE (<&>) #-}
-
 -- | An alias for 'fmap'.
+--
+-- In an ideal world, there would be no @fmap@, only @map@. But instead, the @map@ from "Prelude" is specialized to
+-- lists. This alias partially rectifices that by allowing you to use @map@ with any 'Functor'.
 map :: Functor f => (a -> b) -> f a -> f b
 map = Data.Functor.fmap
 {-# INLINE map #-}
 
--- | @'replicateA' n act@ performs the action @n@ times, gathering the results.
+-- | An alias for 'Control.Monad.replicateM'.
+--
+-- After 'Applicative' was made a superclass of 'Monad', the constraint for 'Control.Monad.replicateM' was relaxed to
+-- 'Applicative', so this renaming better reflects the current constraint.
 replicateA :: Applicative f => Int -> f a -> f [a]
 replicateA = Control.Monad.replicateM
 {-# INLINE replicateA #-}
 
--- | Like 'replicateA', but discards the result.
+-- | An alias for 'Control.Monad.replicateM_'.
+--
+-- After 'Applicative' was made a superclass of 'Monad', the constraint for 'Control.Monad.replicateM_' was relaxed to
+-- 'Applicative', so this renaming better reflects the current constraint.
 replicateA_ :: Applicative f => Int -> f a -> f ()
 replicateA_ = Control.Monad.replicateM_
 {-# INLINE replicateA_ #-}
 
--- | Evaluate each action in the structure from left to right, and ignore the results.
--- For a version that doesn't ignore the results see 'sequence'.
-sequence_ :: (Foldable t, Applicative f) => t (f a) -> f ()
-sequence_ = Data.Foldable.sequenceA_
-{-# INLINE sequence_ #-}
+-- | An alias for 'Data.Witherable.Class.mapMaybe'.
+--
+-- Honestly, I just dislike the name @mapMaybe@ because it makes me think of 'fmap' specialized to 'Maybe', whereas the
+-- name @filterMap@ clearly indicates simultaneously filtering and mapping the values in some structure.
+filterMap :: Filterable t => (a -> Maybe b) -> t a -> t b
+filterMap = Data.Witherable.Class.mapMaybe
+{-# INLINE filterMap #-}
 
--- | Evaluate each action in the structure from left to right, and collect the results.
--- For a version that ignores the results see 'sequence_'.
-sequence :: (Traversable t, Applicative f) => t (f a) -> f (t a)
-sequence = Data.Traversable.sequenceA
-{-# INLINE sequence #-}
-
--- | Construct a list of only the elements satisfying the provided predicate.
-filter :: Foldable t => (a -> Bool) -> t a -> [a]
-filter f = foldr (\a -> bool id (a:) (f a)) []
-{-# INLINE[0] filter #-}
-{-# RULES
-"filter/List" [~1]
-  filter = Prelude.filter
-"filter/build" [1]
-  forall (f :: a -> Bool) (as :: t a).
-    filter f as = build (\k z -> foldr (\a -> bool id (k a) (f a)) z as)
-  #-}
-
--- | Map over a list and filter out the 'Nothing' values.
-filterMap :: Foldable t => (a -> Maybe b) -> t a -> [b]
-filterMap f = foldr (\a -> maybe id (:) (f a)) []
-{-# INLINE[0] filterMap #-}
-{-# RULES
-"filterMap/List" [~1]
-  filterMap = Data.Maybe.mapMaybe
-"filterMap/build" [1]
-  forall (f :: a -> Maybe b) (as :: t a).
-    filterMap f as = build (\k z -> foldr (\a -> maybe id k (f a)) z as)
-  #-}
-
--- | A version of 'filter' in an 'Applicative' context.
-filterA :: (Applicative f, Foldable t) => (a -> f Bool) -> t a -> f [a]
-filterA f = foldr (\a as -> bool id (a:) <$> f a <*> as) (pure [])
-{-# INLINE[1] filterA #-}
-{-# RULES "filterA/List" filterA = Control.Monad.filterM #-}
-
--- | A version of 'filterMap' in an 'Applicative' context.
-filterMapA :: (Applicative f, Foldable t) => (a -> f (Maybe b)) -> t a -> f [b]
-filterMapA f = foldr (\a bs -> maybe id (:) <$> f a <*> bs) (pure [])
+-- | An alias for 'Data.Witherable.Class.wither'.
+--
+-- Similarly to 'filterMap', I find this name much more clear than 'wither'.
+filterMapA :: (Applicative f, Witherable t) => (a -> f (Maybe b)) -> t a -> f (t b)
+filterMapA = Data.Witherable.Class.wither
 {-# INLINE filterMapA #-}
 
--- | Evaluate an expression to weak head normal form.
+-- | An alias for 'Data.Witherable.Class.witherM'.
 --
--- See 'Control.Exception.evaluate'.
+-- Similarly to 'filterMap', I find this name much more clear than 'witherM'.
+filterMapM :: (Monad m, Witherable t) => (a -> m (Maybe b)) -> t a -> m (t b)
+filterMapM = Data.Witherable.Class.witherM
+{-# INLINE filterMapM #-}
+
+-- | Lifted version of 'Control.Exception.evaluate'.
 evaluate :: MonadIO m => a -> m a
 evaluate = liftIO . Control.Exception.evaluate
 {-# INLINE evaluate #-}
 
--- | Strict version of '<$>'.
-(<$!>) :: Functor f => (a -> b) -> f a -> f b
-(<$!>) f = fmap (\a -> let b = f a in b `seq` b)
-infixl 4 <$!>
-{-# INLINE (<$!>) #-}
-
--- | Deeply strict version of '<$>'.
-(<$!!>) :: (Functor f, NFData b) => (a -> b) -> f a -> f b
-(<$!!>) f = fmap (\a -> let b = f a in b `deepseq` b)
-infixl 4 <$!!>
-{-# INLINE (<$!!>) #-}
-
--- | Read a value, returning 'Nothing' on failure.
+-- | Parse a value using 'Text.Read.reads', returning 'Nothing' on failure.
 tryRead :: Read a => String -> Maybe a
 tryRead s = case [ a | (a, rest) <- reads s, null rest ] of
-    [a] -> Just a
-    _   -> Nothing
+  [a] -> Just a
+  _   -> Nothing
 
 -- | Equivalent to @'trace' ('show' a) a@.
 traceShow :: Show a => a -> a
@@ -425,8 +404,8 @@ traceIO = liftIO . Debug.Trace.traceIO
 
 -- | Like 'traceStack' but in the 'IO' monad, so it is sequenced with respect to other actions.
 traceStackIO :: MonadIO m => String -> m ()
-traceStackIO s = do
+traceStackIO s = liftIO $ do
   traceIO s
-  stack <- liftIO GHC.Stack.currentCallStack
+  stack <- GHC.Stack.currentCallStack
   when (not (null stack)) $
     traceIO (GHC.Stack.renderStack stack)

@@ -25,7 +25,8 @@ library
       base >=4.11 && <5
     , deepseq ^>=1.4.3
     , exceptions ^>=0.10.0
-    , unliftio-core ^>=0.1.1
+    , unliftio-core >=0.1.1 && <0.3
+    , witherable-class ^>=0
 
   ghc-options:
     -Wall
@@ -36,11 +37,8 @@ library
     -fwarn-tabs
 
   if flag(ignore-asserts)
-    cpp-options: -DIGNORE_ASSERTS=1
+    cpp-options: -DPRELUDE_PRIME_IGNORE_ASSERTS=1
   else
-    cpp-options: -DIGNORE_ASSERTS=0
+    cpp-options: -DPRELUDE_PRIME_IGNORE_ASSERTS=0
 
   default-language: Haskell2010
-  default-extensions:
-    ConstraintKinds
-    NoImplicitPrelude
