@@ -221,19 +221,23 @@ module PreludePrime
 , PreludePrime.Exception.Partial
 
 -- ** Assertions
--- | See "PreludePrime.Exception" for additional documentation.
-, PreludePrime.Exception.assert
-, PreludePrime.Exception.assertMsg
-, PreludePrime.Exception.assertIO
-, PreludePrime.Exception.assertMsgIO
-, PreludePrime.Exception.assertM
-, PreludePrime.Exception.assertMsgM
-, PreludePrime.Exception.ensure
-, PreludePrime.Exception.ensureMsg
-, PreludePrime.Exception.ensureIO
-, PreludePrime.Exception.ensureMsgIO
-, PreludePrime.Exception.ensureM
-, PreludePrime.Exception.ensureMsgM
+-- | See "PreludePrime.Assert" for additional documentation.
+, PreludePrime.Assert.assert
+, PreludePrime.Assert.assertMsg
+, PreludePrime.Assert.assertPred
+, PreludePrime.Assert.assertPredMsg
+, PreludePrime.Assert.assertIO
+, PreludePrime.Assert.assertMsgIO
+, PreludePrime.Assert.assertM
+, PreludePrime.Assert.assertMsgM
+, PreludePrime.Assert.ensure
+, PreludePrime.Assert.ensureMsg
+, PreludePrime.Assert.ensurePred
+, PreludePrime.Assert.ensurePredMsg
+, PreludePrime.Assert.ensureIO
+, PreludePrime.Assert.ensureMsgIO
+, PreludePrime.Assert.ensureM
+, PreludePrime.Assert.ensureMsgM
 
 -- * IO
 -- | Functions which do actual IO should be imported from "System.IO".
@@ -303,6 +307,7 @@ import qualified GHC.Stack
 import qualified GHC.TypeLits
 import qualified Numeric.Natural
 import qualified Prelude
+import qualified PreludePrime.Assert
 import qualified PreludePrime.Exception
 import qualified System.IO
 import qualified Text.Read
