@@ -1,8 +1,8 @@
 -- | Module which re-exports all numeric types and functions from @base@.
 --
--- The majority of the numeric classes and functions are only exported by "Prelude", but this includes a lot of stuff
--- that isn't really commonly enough used to be in "PreludePrime". This module can be imported as an additional numeric
--- prelude for modules that need these functions.
+-- The majority of the numeric classes and functions are only exported by "Prelude", but this
+-- includes a lot of stuff that isn't really commonly enough used to be in "PreludePrime". This
+-- module can be imported as an additional numeric prelude for modules that need these functions.
 module PreludePrime.Numeric
 (
 -- * Prelude re-exports

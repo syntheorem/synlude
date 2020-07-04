@@ -4,15 +4,16 @@
 --
 -- This module is mostly a drop-in replacement for "Control.Exception", with a few key differences:
 --
--- * The functions are generalized from the 'IO' monad to any monad which supports the requisite operations. This is
--- done using 'MonadThrow', 'MonadCatch', and 'MonadMask' from "Control.Monad.Catch" in the @exceptions@ package. In
--- fact, most of this module consists of re-exports from that package.
+-- * The functions are generalized from the 'IO' monad to any monad which supports the requisite
+-- operations. This is done using 'MonadThrow', 'MonadCatch', and 'MonadMask' from
+-- "Control.Monad.Catch" in the @exceptions@ package. In fact, most of this module consists of
+-- re-exports from that package.
 --
--- * Several extra utility functions are included; in particular, functions for dealing with asynchronous exceptions and
--- functions from "Control.Exception" lifted to 'MonadIO'.
+-- * Several extra utility functions are included; in particular, functions for dealing with
+-- asynchronous exceptions and functions from "Control.Exception" lifted to 'MonadIO'.
 --
--- * All of the monadic throwing functions have an @xxxIO@ and @xxxM@ variant. This is for convenience when your
--- constraints include 'MonadIO' but not 'MonadThrow'.
+-- * All of the monadic throwing functions have an @xxxIO@ and @xxxM@ variant. This is for
+-- convenience when your constraints include 'MonadIO' but not 'MonadThrow'.
 module PreludePrime.Exception
 ( Partial
 , Control.Exception.Exception(toException, fromException, displayException)
@@ -125,7 +126,8 @@ import GHC.Stack (HasCallStack, callStack)
 
 -- | A type constraint which indicates that a function may throw an exception.
 --
--- It is an alias for 'HasCallStack' so that such functions can provide better stack traces with their exceptions.
+-- It is an alias for 'HasCallStack' so that such functions can provide better stack traces with
+-- their exceptions.
 type Partial = HasCallStack
 
 -- | Lifted version of "Control.Exception"'s 'Control.Exception.throwIO'.
@@ -146,13 +148,13 @@ throwTo tid e = liftIO $ Control.Exception.throwTo tid e
 
 -- | Predicate to test if an exception is asynchronous.
 --
--- It's important to note that this is determined by the type of the exception; specifically, whether the type uses
--- 'asyncExceptionToException' as its implementation for 'toException'. Since 'throw' and 'throwTo' don't constrain the
--- types of exceptions thrown, this function does not prove whether the given exception was actually thrown
--- asynchronously or not.
+-- It's important to note that this is determined by the type of the exception; specifically,
+-- whether the type uses 'asyncExceptionToException' as its implementation for 'toException'. Since
+-- 'throw' and 'throwTo' don't constrain the types of exceptions thrown, this function does not
+-- prove whether the given exception was actually thrown asynchronously or not.
 --
--- It is therefore recommended to only use 'throw' for synchronous exception types and only use 'throwTo' for
--- asynchronous exception types.
+-- It is therefore recommended to only use 'throw' for synchronous exception types and only use
+-- 'throwTo' for asynchronous exception types.
 isAsyncException :: Exception e => e -> Bool
 isAsyncException = isJust . fromException @SomeAsyncException . toException
 

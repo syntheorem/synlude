@@ -136,7 +136,7 @@ module PreludePrime
 , replicateA_
 
 -- * Monad
-, Control.Monad.Monad((>>=), (>>), return)
+, Control.Monad.Monad((>>=), (>>))
 , Control.Monad.Fail.MonadFail(fail)
 , Control.Monad.Fix.MonadFix(mfix)
 , (Control.Monad.=<<)
@@ -150,7 +150,7 @@ module PreludePrime
 , Control.Monad.guard
 
 -- * Foldable
-, Data.Foldable.Foldable (fold, foldMap, foldr, foldr', foldl, foldl')
+, Data.Foldable.Foldable(fold, foldMap, foldr, foldr', foldl, foldl')
 
 -- ** Applicative folds
 , Data.Foldable.traverse_
@@ -261,7 +261,8 @@ module PreludePrime
 , GHC.Generics.Generic -- included for easy deriving
 
 -- * Tracing
--- | Provided in the prelude to avoid having to add and remove @import "Debug.Trace"@ statements when debugging.
+-- | Provided in the prelude to avoid having to add and remove @import "Debug.Trace"@ statements
+-- when debugging.
 , Debug.Trace.trace
 , traceShow
 , Debug.Trace.traceStack
@@ -324,7 +325,8 @@ import Prelude
 
 -- | A lifted version of '&&'.
 --
--- Useful when combined with the 'Applicative' instance for functions, e.g. @(isSpace \<&&\> isControl) c@.
+-- Useful when combined with the 'Applicative' instance for functions,
+-- e.g. @(isSpace \<&&\> isControl)  c@.
 (<&&>) :: Applicative f => f Bool -> f Bool -> f Bool
 (<&&>) = Control.Applicative.liftA2 (&&)
 infixr 3 <&&>
@@ -332,7 +334,8 @@ infixr 3 <&&>
 
 -- | A lifted version of '||'.
 --
--- Useful when combined with the 'Applicative' instance for functions, e.g. @(isSpace \<||\> isControl) c@.
+-- Useful when combined with the 'Applicative' instance for functions,
+-- e.g. @(isSpace \<||\> isControl) c@.
 (<||>) :: Applicative f => f Bool -> f Bool -> f Bool
 (<||>) = Control.Applicative.liftA2 (||)
 infixr 2 <||>
@@ -340,32 +343,36 @@ infixr 2 <||>
 
 -- | An alias for 'fmap'.
 --
--- In an ideal world, there would be no @fmap@, only @map@. But instead, the @map@ from "Prelude" is specialized to
--- lists. This alias partially rectifices that by allowing you to use @map@ with any 'Functor'.
+-- In an ideal world, there would be no @fmap@, only @map@. But instead, the @map@ from "Prelude" is
+-- specialized to lists. This alias partially rectifices that by allowing you to use @map@ with any
+-- 'Functor'.
 map :: Functor f => (a -> b) -> f a -> f b
 map = Data.Functor.fmap
 {-# INLINE map #-}
 
 -- | An alias for 'Control.Monad.replicateM'.
 --
--- After 'Applicative' was made a superclass of 'Monad', the constraint for 'Control.Monad.replicateM' was relaxed to
--- 'Applicative', so this renaming better reflects the current constraint.
+-- After 'Applicative' was made a superclass of 'Monad', the constraint for
+-- 'Control.Monad.replicateM' was relaxed to 'Applicative', so this renaming better reflects the
+-- current constraint.
 replicateA :: Applicative f => Int -> f a -> f [a]
 replicateA = Control.Monad.replicateM
 {-# INLINE replicateA #-}
 
 -- | An alias for 'Control.Monad.replicateM_'.
 --
--- After 'Applicative' was made a superclass of 'Monad', the constraint for 'Control.Monad.replicateM_' was relaxed to
--- 'Applicative', so this renaming better reflects the current constraint.
+-- After 'Applicative' was made a superclass of 'Monad', the constraint for
+-- 'Control.Monad.replicateM_' was relaxed to 'Applicative', so this renaming better reflects the
+-- current constraint.
 replicateA_ :: Applicative f => Int -> f a -> f ()
 replicateA_ = Control.Monad.replicateM_
 {-# INLINE replicateA_ #-}
 
 -- | An alias for 'Data.Witherable.Class.mapMaybe'.
 --
--- Honestly, I just dislike the name @mapMaybe@ because it makes me think of 'fmap' specialized to 'Maybe', whereas the
--- name @filterMap@ clearly indicates simultaneously filtering and mapping the values in some structure.
+-- Honestly, I just dislike the name @mapMaybe@ because it makes me think of 'fmap' specialized to
+-- 'Maybe', whereas the name @filterMap@ clearly indicates simultaneously filtering and mapping the
+-- values in some structure.
 filterMap :: Filterable t => (a -> Maybe b) -> t a -> t b
 filterMap = Data.Witherable.Class.mapMaybe
 {-# INLINE filterMap #-}

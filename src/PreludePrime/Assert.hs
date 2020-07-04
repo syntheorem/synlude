@@ -1,40 +1,66 @@
 {-# LANGUAGE CPP #-}
 
--- | Unlike the @assert@ from "Control.Exception", these assertions are not controlled by the @-fignore-asserts@ GHC
--- flags, but rather are enabled or disabled by the @ignore-asserts@ flag that this package provides. The reason for
--- this is that the built-in @assert@ provided by "Control.Exception" isn't flexible; you can't pass a custom message,
--- and you can't define assert functions on top of it (such as 'assertM') because the location in the printed message
--- will be based on the call to @assert@ rather than the call to the function wrapping it. Using GHC's 'HasCallStack',
--- we can do better.
+-- | Unlike the @assert@ from "Control.Exception", these assertions are not controlled by the
+-- @-fignore-asserts@ GHC flags, but rather are enabled or disabled by the @ignore-asserts@ flag
+-- that this package provides. The reason for this is that the built-in @assert@ provided by
+-- "Control.Exception" isn't flexible; you can't pass a custom message, and you can't define assert
+-- functions on top of it (such as 'assertM') because the location in the printed message will be
+-- based on the call to @assert@ rather than the call to the function wrapping it. Using GHC's
+-- 'HasCallStack', we can do better.
 --
--- For assertions that you want to be unconditionally enabled, use @ensureXXX@ instead of @assertXXX@. This is best used
--- for cheap checks that are important to ensure program safety, such as checking that the index into an array is in
--- bounds.
+-- For assertions that you want to be unconditionally enabled, use @ensureXXX@ instead of
+-- @assertXXX@. This is best used for cheap checks that are important to ensure program safety, such
+-- as checking that the index into an array is in bounds or some other function pre-condition that
+-- is not enforced by the type system.
 --
--- Finally, these functions do not throw 'AssertionFailed' exceptions, but rather 'ErrorCall'. This is primarily because
--- 'ErrorCall' separates the error message from the source location, which can be convenient for logging. It also allows
--- them to be implemented in terms of 'error'.
+-- Finally, these functions do not throw 'AssertionFailed' exceptions, but rather 'ErrorCall'. This
+-- is primarily because 'ErrorCall' separates the error message from the source location, which can
+-- be convenient for logging. It also allows them to be implemented in terms of 'error'.
 --
--- The downside to using a package flag to disable assertions is a lack of granularity; assertions are enabled or
--- disabled for the entire program, whereas GHC's @-fignore-asserts@ flag can be controlled on a per-package or
--- per-module basis. There are some alternative implementations that could fix this, each with their own downsides:
+-- The downside to using a package flag to disable assertions is a lack of granularity; assertions
+-- are enabled or disabled for the entire program, whereas GHC's @-fignore-asserts@ flag can be
+-- controlled on a per-package or per-module basis. It's also a pain to do something like having
+-- assertions enabled for tests but disabled for benchmarks within a single package because you
+-- can't specify package flags in a @.cabal@ file; you have to remember to pass the flag to the
+-- @cabal@ command. There are some alternative implementations that could fix this, each with their
+-- own downsides:
 --
--- * There is a hack which can determine whether assertions are enabled by passing "Control.Exception"'s @assert@ to
--- another function and using a rewrite rule for that function to determine whether GHC has replaced @assert@ with the
--- identity function. The problem is that GHC performs this substitution based on the module where @assert@ actually
--- appears in the source, so it requires the user of the custom assert function to pass @assert@ as an argument, which
--- is not great, ergonomically speaking.
+-- * There is a hack which can determine whether assertions are enabled by passing
+-- "Control.Exception"'s @assert@ to another function and using a rewrite rule for that function to
+-- determine whether GHC has replaced @assert@ with the identity function. The problem is that GHC
+-- performs this substitution based on the module where @assert@ actually appears in the source, so
+-- it requires the user of the custom assert function to pass @assert@ as an argument, which is not
+-- great, ergonomically speaking.
 --
--- * A custom GHC plugin could be used to perform the substitution of 'assertsEnabled' /after/ inlining has been
--- performed. This would introduce a lot of complexity, both because of implementing a GHC pass and due to the GHC API
--- changing between versions. It would also require the user to pass the @-fplugin=@ option to GHC in any project using
--- these assertions. Finally, assertions that get inlined into other modules would be controlled by the settings for
--- /that/ module rather than the module in which they were originially placed.
+-- * Use the above option, but instead define the custom assert functions as C preprocessor macros
+-- which handle passing "Control.Exception"'s @assert@ as an argument. The downside here is that the
+-- user must enable the @CPP@ extension and @#include@ a header when they want to use asserts.
 --
--- * An API or utility could be provided making it easy for individual packages to define their own @Assert@ modules
--- controlled by flags specific to that package (e.g, the @vector@ package has multiple flags controlling different
--- kinds of assertions). However, this sort of thing seems out of scope for this package which is intended for
--- convenience, not as a framework which requires additional setup and boilerplate.
+-- * A custom GHC plugin could be used to perform the substitution of 'assertsEnabled' /after/
+-- inlining has been performed. This would introduce a lot of complexity, both because of
+-- implementing a GHC pass and due to the GHC API changing between versions. It would also require
+-- the user to pass the @-fplugin=@ option to GHC in any project using these assertions. Finally,
+-- assertions that get inlined into other modules would be controlled by the settings for /that/
+-- module rather than the module in which they were originially placed.
+--
+-- * To fix the inlining issue with the plugin option, instead have the plugin solve a special
+-- @HasAsserts@ constraint that works similarly to 'HasCallStack' in the sense that if the
+-- constraint is not already available then it inserts it based on whether @-fignore-asserts@ is
+-- enabled.
+--
+-- * An API or utility could be provided making it easy for individual packages to define their own
+-- @Assert@ modules controlled by flags specific to that package (e.g, the @vector@ package has
+-- multiple flags controlling different kinds of assertions). However, this sort of thing seems out
+-- of scope for this package which is intended for convenience, not as a framework which requires
+-- additional setup and boilerplate.
+--
+-- * In theory, turn @assert@ and friends into @TemplateHaskell@ functions and have the user write
+-- @$$(assert) cond a@, then use TH to check for the @-fignore-asserts@ flag when the splice is
+-- compiled. Unfortunately, TH lacks a mechanism to check for GHC flags or any other implicit
+-- configuration.
+--
+-- * Get GHC to add better assert functions to @base@. This obviously can't be implemented as a
+-- library.
 module PreludePrime.Assert
 ( -- * Unconditional Assertions
   -- | These assertions are always checked.
@@ -70,8 +96,9 @@ import PreludePrime.Exception
 
 -- [NOTE: withFrozenCallStack]
 --
--- The reason for the 'withFrozenCallStack' calls before every error call is so that the callstack doesn't spuriously
--- include the source location from this module, and instead ends at the location of the call to 'assert', etc.
+-- The reason for the 'withFrozenCallStack' calls before every error call is so that the callstack
+-- doesn't spuriously include the source location from this module, and instead ends at the location
+-- of the call to 'assert', etc.
 
 -- | Call @'error' "Assertion failed"@ if the provided condition is 'False'.
 ensure :: HasCallStack => Bool -> a -> a
@@ -107,8 +134,8 @@ ensureMsgM cond msg = unless cond $ withFrozenCallStack $ errorM msg
 
 -- [NOTE: inlining]
 --
--- The assert functions are all inlined to ensure that all code relating to checking the assertions condition is removed
--- by the optimizer when assertions are disabled.
+-- The assert functions are all inlined to ensure that all code relating to checking the assertions
+-- condition is removed by the optimizer when assertions are disabled.
 
 -- | Like 'ensure', but can be disabled via this package's @ignore-asserts@ flag.
 assert :: HasCallStack => Bool -> a -> a
