@@ -67,7 +67,6 @@ module PreludePrime
 , Prelude.Integer
 , Numeric.Natural.Natural
 , Prelude.Rational
-, (Data.Ratio.%)
 
 -- ** Explicit precision types
 , Data.Int.Int8
@@ -292,7 +291,6 @@ import qualified Data.Kind
 import qualified Data.Maybe
 import qualified Data.Monoid
 import qualified Data.Ord
-import qualified Data.Ratio
 import qualified Data.Semigroup
 import qualified Data.String
 import qualified Data.Traversable
