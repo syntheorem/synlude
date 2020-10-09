@@ -1,4 +1,5 @@
 {-# LANGUAGE NoImplicitPrelude #-}
+{-# LANGUAGE PatternSynonyms #-}
 
 -- | An alternative prelude for modern Haskell.
 module PreludePrime
@@ -121,6 +122,9 @@ module PreludePrime
 , Data.Functor.void
 , Data.Functor.Const.Const(Const, getConst)
 , Data.Functor.Identity.Identity(Identity, runIdentity)
+, Id
+, pattern Id
+, unId
 
 -- * Applicative
 , Control.Applicative.Applicative(pure, (<*>))
@@ -285,7 +289,6 @@ import qualified Data.Foldable
 import qualified Data.Function
 import qualified Data.Functor
 import qualified Data.Functor.Const
-import qualified Data.Functor.Identity
 import qualified Data.Int
 import qualified Data.Kind
 import qualified Data.Maybe
@@ -314,6 +317,7 @@ import qualified Text.Show
 
 import Control.Monad (when)
 import Control.Monad.IO.Class (MonadIO(liftIO))
+import Data.Functor.Identity (Identity(Identity, runIdentity))
 import Data.Witherable.Class (Filterable, Witherable)
 
 import Prelude
@@ -347,6 +351,22 @@ infixr 2 <||>
 map :: Functor f => (a -> b) -> f a -> f b
 map = Data.Functor.fmap
 {-# INLINE map #-}
+
+-- | An alias for 'Identity'.
+--
+-- In the same way that the identity function is abbreviated to 'id', the identity functor should be
+-- abbreviated to @Id@ to reduce the level of visual noise when it is heavily used.
+type Id = Identity
+
+-- | An alias for the 'Identity' constructor.
+pattern Id :: a -> Id a
+pattern Id a = Identity a
+{-# COMPLETE Id #-}
+
+-- | An alias for 'runIdentity'.
+unId :: Id a -> a
+unId = runIdentity
+{-# INLINE unId #-}
 
 -- | An alias for 'Control.Monad.replicateM'.
 --
