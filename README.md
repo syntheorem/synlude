@@ -19,3 +19,22 @@ This package provides a more minimal Haskell prelude with the following differen
 * More generalized exception support plus better assertions, found in `Synlude.Exception`.
 
 To be honest, I don't really expect anyone else to use this, but I think it makes Haskell more pleasant to use for my own projects. I know there are a lot of alternative preludes out there, but most of them go the direction of putting far *more* stuff in the prelude, which isn't what I was looking for.
+
+## Usage
+
+There are two ways to use `Synlude` instead of `Prelude`:
+
+1. Enable the `NoImplicitPrelude` extension and explicitly import `Synlude` in each module.
+
+    ```Haskell
+    {-# LANGUAGE NoImplicitPrelude #-}
+    import Synlude
+    ```
+
+2. Add a `mixins` declaration to your `.cabal` library stanza which hides `Prelude` from `base` and renames `Synlude` to `Prelude`.
+
+    ```Cabal
+    mixins:
+        base hiding (Prelude),
+        synlude (Synlude as Prelude)
+    ```
