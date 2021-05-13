@@ -14,7 +14,7 @@
 --
 -- * All of the monadic throwing functions have an @xxxIO@ and @xxxM@ variant. This is for
 -- convenience when your constraints include 'MonadIO' but not 'MonadThrow'.
-module PreludePrime.Exception
+module Synlude.Exception
 ( Partial
 , Control.Exception.Exception(toException, fromException, displayException)
 , Control.Exception.SomeException(..)

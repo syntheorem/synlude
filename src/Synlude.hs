@@ -2,7 +2,7 @@
 {-# LANGUAGE PatternSynonyms #-}
 
 -- | An alternative prelude for modern Haskell.
-module PreludePrime
+module Synlude
 (
 -- * Function
   Data.Function.id
@@ -203,35 +203,35 @@ module PreludePrime
 , (Control.DeepSeq.<$!!>)
 
 -- * Exceptions
-, PreludePrime.Exception.undefined
-, PreludePrime.Exception.error
-, PreludePrime.Exception.errorIO
-, PreludePrime.Exception.errorM
-, PreludePrime.Exception.throw
-, PreludePrime.Exception.throwIO
-, PreludePrime.Exception.throwM
-, PreludePrime.Exception.Exception(toException, fromException, displayException)
-, PreludePrime.Exception.SomeException(SomeException)
-, PreludePrime.Exception.Partial
+, Synlude.Exception.undefined
+, Synlude.Exception.error
+, Synlude.Exception.errorIO
+, Synlude.Exception.errorM
+, Synlude.Exception.throw
+, Synlude.Exception.throwIO
+, Synlude.Exception.throwM
+, Synlude.Exception.Exception(toException, fromException, displayException)
+, Synlude.Exception.SomeException(SomeException)
+, Synlude.Exception.Partial
 
 -- ** Assertions
--- | See "PreludePrime.Assert" for additional documentation.
-, PreludePrime.Assert.assert
-, PreludePrime.Assert.assertMsg
-, PreludePrime.Assert.assertPred
-, PreludePrime.Assert.assertPredMsg
-, PreludePrime.Assert.assertIO
-, PreludePrime.Assert.assertMsgIO
-, PreludePrime.Assert.assertM
-, PreludePrime.Assert.assertMsgM
-, PreludePrime.Assert.ensure
-, PreludePrime.Assert.ensureMsg
-, PreludePrime.Assert.ensurePred
-, PreludePrime.Assert.ensurePredMsg
-, PreludePrime.Assert.ensureIO
-, PreludePrime.Assert.ensureMsgIO
-, PreludePrime.Assert.ensureM
-, PreludePrime.Assert.ensureMsgM
+-- | See "Synlude.Assert" for additional documentation.
+, Synlude.Assert.assert
+, Synlude.Assert.assertMsg
+, Synlude.Assert.assertPred
+, Synlude.Assert.assertPredMsg
+, Synlude.Assert.assertIO
+, Synlude.Assert.assertMsgIO
+, Synlude.Assert.assertM
+, Synlude.Assert.assertMsgM
+, Synlude.Assert.ensure
+, Synlude.Assert.ensureMsg
+, Synlude.Assert.ensurePred
+, Synlude.Assert.ensurePredMsg
+, Synlude.Assert.ensureIO
+, Synlude.Assert.ensureMsgIO
+, Synlude.Assert.ensureM
+, Synlude.Assert.ensureMsgM
 
 -- * IO
 -- | Functions which do actual IO should be imported from "System.IO".
@@ -296,8 +296,8 @@ import qualified GHC.Generics
 import qualified GHC.Stack
 import qualified Numeric.Natural
 import qualified Prelude
-import qualified PreludePrime.Assert
-import qualified PreludePrime.Exception
+import qualified Synlude.Assert
+import qualified Synlude.Exception
 import qualified System.IO
 import qualified Text.Read
 import qualified Text.Show

@@ -1,11 +1,9 @@
 cabal-version: 2.2
 
-name:           prelude-prime
+name:           synlude
 version:        0.1.0.0
 synopsis:       My custom prelude, plus additional utilities
-author:         Lloyd Cunningham
-maintainer:     lloyd.cunningham@me.com
-copyright:      2018 Lloyd Cunningham
+maintainer:     syntheorem@gmail.com
 category:       Prelude
 build-type:     Simple
 
@@ -17,10 +15,10 @@ flag ignore-asserts
 library
   hs-source-dirs: src
   exposed-modules:
-    PreludePrime
-    PreludePrime.Assert
-    PreludePrime.Exception
-    PreludePrime.Numeric
+    Synlude
+    Synlude.Assert
+    Synlude.Exception
+    Synlude.Numeric
 
   build-depends:
       base >=4.11 && <5
@@ -37,8 +35,8 @@ library
     -fwarn-tabs
 
   if flag(ignore-asserts)
-    cpp-options: -DPRELUDE_PRIME_IGNORE_ASSERTS=1
+    cpp-options: -DSYNLUDE_IGNORE_ASSERTS=1
   else
-    cpp-options: -DPRELUDE_PRIME_IGNORE_ASSERTS=0
+    cpp-options: -DSYNLUDE_IGNORE_ASSERTS=0
 
   default-language: Haskell2010

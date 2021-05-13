@@ -61,7 +61,7 @@
 --
 -- * Get GHC to add better assert functions to @base@. This obviously can't be implemented as a
 -- library.
-module PreludePrime.Assert
+module Synlude.Assert
 ( -- * Unconditional Assertions
   -- | These assertions are always checked.
   ensure
@@ -92,7 +92,7 @@ module PreludePrime.Assert
 import Control.Monad (unless)
 import Control.Monad.IO.Class (MonadIO)
 import GHC.Stack (HasCallStack, withFrozenCallStack)
-import PreludePrime.Exception
+import Synlude.Exception
 
 -- [NOTE: withFrozenCallStack]
 --
@@ -179,7 +179,7 @@ assertMsgM cond msg = ifAssertsEnabled (withFrozenCallStack $ ensureMsgM cond ms
 
 -- | @ifAssertsEnabled a b = if 'assertsEnabled' then a else b@.
 ifAssertsEnabled :: a -> a -> a
-#if !PRELUDE_PRIME_IGNORE_ASSERTS
+#if !SYNLUDE_IGNORE_ASSERTS
 ifAssertsEnabled a _ = a
 #else
 ifAssertsEnabled _ a = a
