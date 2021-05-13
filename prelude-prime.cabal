@@ -27,7 +27,6 @@ library
     , deepseq ^>=1.4.3
     , exceptions ^>=0.10.0
     , unliftio-core >=0.1.1 && <0.3
-    , witherable-class ^>=0
 
   ghc-options:
     -Wall

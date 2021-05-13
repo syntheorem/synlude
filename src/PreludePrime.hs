@@ -104,7 +104,6 @@ module PreludePrime
 , Prelude.RealFrac(properFraction, truncate, round, ceiling, floor)
 
 -- * Enumerations
--- primarily included because these classes aren't exported anywhere else.
 , Prelude.Enum(succ, pred, toEnum, fromEnum, enumFrom, enumFromThen, enumFromTo, enumFromThenTo)
 , Prelude.Bounded(minBound, maxBound)
 
@@ -174,6 +173,8 @@ module PreludePrime
 , Data.Foldable.null
 , Data.Foldable.elem
 , Data.Foldable.find
+, Data.Foldable.concat
+, Data.Foldable.concatMap
 , Data.Foldable.and
 , Data.Foldable.or
 , Data.Foldable.all
@@ -190,22 +191,12 @@ module PreludePrime
 , Data.Traversable.for
 , Data.Traversable.forM
 
--- * Filterable
--- | Abstraction of data structures which can be filtered, from "Data.Witherable.Class".
-, Data.Witherable.Class.Filterable
-, Data.Witherable.Class.filter
-, filterMap
-, Data.Witherable.Class.Witherable
-, Data.Witherable.Class.filterA
-, filterMapA
-, filterMapM
-
 -- * Forcing evaluation
 , evaluate
 , Prelude.seq
 , (Prelude.$!)
 , (Control.Monad.<$!>)
-, Control.DeepSeq.NFData
+, Control.DeepSeq.NFData(rnf)
 , Control.DeepSeq.deepseq
 , Control.DeepSeq.force
 , (Control.DeepSeq.$!!)
@@ -255,8 +246,6 @@ module PreludePrime
 -- * Kinds
 , Data.Kind.Type
 , Data.Kind.Constraint
-, GHC.TypeLits.Nat
-, GHC.TypeLits.Symbol
 
 -- * Additional types
 , Data.Void.Void
@@ -300,13 +289,11 @@ import qualified Data.Traversable
 import qualified Data.Tuple
 import qualified Data.Typeable
 import qualified Data.Proxy
-import qualified Data.Witherable.Class
 import qualified Data.Word
 import qualified Data.Void
 import qualified Debug.Trace
 import qualified GHC.Generics
 import qualified GHC.Stack
-import qualified GHC.TypeLits
 import qualified Numeric.Natural
 import qualified Prelude
 import qualified PreludePrime.Assert
@@ -318,11 +305,10 @@ import qualified Text.Show
 import Control.Monad (when)
 import Control.Monad.IO.Class (MonadIO(liftIO))
 import Data.Functor.Identity (Identity(Identity, runIdentity))
-import Data.Witherable.Class (Filterable, Witherable)
 
 import Prelude
   ( Bool, Int, String, Maybe(Just, Nothing), Functor, Applicative
-  , Monad, Read, reads, null, Show(show), (.), not, (&&), (||), ($)
+  , Read, reads, null, Show(show), (.), not, (&&), (||), ($)
   )
 
 -- | A lifted version of '&&'.
@@ -385,29 +371,6 @@ replicateA = Control.Monad.replicateM
 replicateA_ :: Applicative f => Int -> f a -> f ()
 replicateA_ = Control.Monad.replicateM_
 {-# INLINE replicateA_ #-}
-
--- | An alias for 'Data.Witherable.Class.mapMaybe'.
---
--- Honestly, I just dislike the name @mapMaybe@ because it makes me think of 'fmap' specialized to
--- 'Maybe', whereas the name @filterMap@ clearly indicates simultaneously filtering and mapping the
--- values in some structure.
-filterMap :: Filterable t => (a -> Maybe b) -> t a -> t b
-filterMap = Data.Witherable.Class.mapMaybe
-{-# INLINE filterMap #-}
-
--- | An alias for 'Data.Witherable.Class.wither'.
---
--- Similarly to 'filterMap', I find this name much more clear than 'wither'.
-filterMapA :: (Applicative f, Witherable t) => (a -> f (Maybe b)) -> t a -> f (t b)
-filterMapA = Data.Witherable.Class.wither
-{-# INLINE filterMapA #-}
-
--- | An alias for 'Data.Witherable.Class.witherM'.
---
--- Similarly to 'filterMap', I find this name much more clear than 'witherM'.
-filterMapM :: (Monad m, Witherable t) => (a -> m (Maybe b)) -> t a -> m (t b)
-filterMapM = Data.Witherable.Class.witherM
-{-# INLINE filterMapM #-}
 
 -- | Lifted version of 'Control.Exception.evaluate'.
 evaluate :: MonadIO m => a -> m a
