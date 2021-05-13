@@ -3,9 +3,16 @@ cabal-version: 2.2
 name:           synlude
 version:        0.1.0.0
 synopsis:       My custom prelude, plus additional utilities
+license:        MIT
+license-file:   LICENSE.txt
+author:         syntheorem
 maintainer:     syntheorem@gmail.com
+homepage:       https://github.com/syntheorem/synlude
 category:       Prelude
 build-type:     Simple
+
+extra-doc-files:
+  README.md
 
 flag ignore-asserts
   description: Causes the assert functions to become identity functions.
